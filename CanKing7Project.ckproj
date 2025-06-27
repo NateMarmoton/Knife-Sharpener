@@ -1,0 +1,189 @@
+{
+  "version": 7,
+  "measurementSetup": {
+    "sources": [
+      {
+        "baseNode": {
+          "identifier": "b73ac233-eb80-4905-8dee-61777b8b6746",
+          "name": "CAN 1",
+          "description": [
+            "Kvaser Memorator Pro 2xHS v2 - 13940",
+            "0: CAN - 1000 kbit/s, 75%"
+          ],
+          "readOnlyProperties": false,
+          "readOnlyConnections": false,
+          "disabled": false
+        },
+        "isDataGenerator": false,
+        "channelSettings": {
+          "channelNumber": 0,
+          "lockedToSerialNumber": false,
+          "deviceProductCode": "73-30130-00819-9",
+          "deviceSerialNumber": "13940",
+          "channelNumberOnDevice": 0,
+          "deviceCardType": 78,
+          "deviceCardNumber": 0,
+          "canConfiguration": {
+            "canMode": 1,
+            "accessMode": 1,
+            "silentMode": false,
+            "busParamsBitRate": 1000000,
+            "busParams": {
+              "tq": 8,
+              "phase1": 2,
+              "phase2": 2,
+              "sjw": 2,
+              "prop": 3,
+              "prescaler": 10
+            },
+            "busParamsDataPhaseBitRate": 4000000,
+            "busParamsDataPhase": {
+              "tq": 10,
+              "phase1": 7,
+              "phase2": 2,
+              "sjw": 2,
+              "prop": 0,
+              "prescaler": 2
+            }
+          }
+        }
+      }
+    ],
+    "dataProcessors": [
+      {
+        "baseNode": {
+          "identifier": "79e7deae-6aec-438c-9f63-7f9c2b12fa70",
+          "name": "Databases 1",
+          "description": [
+            "M15 3D 233.dbc"
+          ],
+          "readOnlyProperties": false,
+          "readOnlyConnections": false,
+          "disabled": false
+        },
+        "connectedNodes": [
+          "b73ac233-eb80-4905-8dee-61777b8b6746"
+        ],
+        "databasesSettings": {
+          "databaseFiles": [
+            "C:\\Users\\ncmma\\Downloads\\M15 3D 233.dbc"
+          ]
+        }
+      }
+    ],
+    "targets": [
+      {
+        "baseNode": {
+          "identifier": "2EE6667D-2C84-4BEB-822C-7494CC93B08E",
+          "name": "UI Streams",
+          "description": [
+            "Streams data and status to the user interface"
+          ],
+          "readOnlyProperties": true,
+          "readOnlyConnections": false,
+          "disabled": false
+        },
+        "connectedNodes": [
+          "79e7deae-6aec-438c-9f63-7f9c2b12fa70"
+        ]
+      },
+      {
+        "baseNode": {
+          "identifier": "b73ac233-eb80-4905-8dee-61777b8b6746",
+          "name": "CAN 1 - Out",
+          "description": [
+            "Kvaser Memorator Pro 2xHS v2 - 13940",
+            "0: CAN - 1000 kbit/s, 75%"
+          ],
+          "readOnlyProperties": true,
+          "readOnlyConnections": true,
+          "disabled": false
+        },
+        "connectedNodes": []
+      }
+    ],
+    "language": "en"
+  },
+  "workspaces": [
+    {
+      "id": 1,
+      "title": "Workspace 1",
+      "workspacePaneId": 1
+    }
+  ],
+  "workspacePanes": [
+    {
+      "id": 1,
+      "containerData": {
+        "vertical": false,
+        "paneDataIds": [
+          3
+        ],
+        "paneRatios": [
+          1
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "componentData": {
+        "componentId": "can-periodic-send-view",
+        "componentProps": "{\"settings\":{\"channelIdentifier\":\"b73ac233-eb80-4905-8dee-61777b8b6746\",\"frame\":{\"id\":50,\"data\":[0,0,0,0,0,0,0,0],\"canFrameFlags\":{\"flags\":[2]}},\"randomInterval\":false,\"constantIntervalMs\":100,\"randomIntervalMinMs\":50,\"randomIntervalMaxMs\":500,\"numberOfMessages\":0,\"randomDataLength\":false,\"randomMessageData\":false,\"randomIdentifier\":false,\"scanIdentifier\":false,\"identifierMin\":0,\"identifierMax\":2047,\"randomBurstSize\":false,\"constantBurstSize\":1,\"randomBurstSizeMin\":1,\"randomBurstSizeMax\":5},\"channelCollapsed\":true,\"idCollapsed\":true,\"frameCollapsed\":false,\"intervalCollapsed\":false,\"nofMsgCollapsed\":false,\"burstSizeCollapsed\":true,\"message\":{\"id\":50,\"messageName\":\"SetPoint\",\"messageQualifiedName\":\"M15 3D 233.SetPoint\",\"dataLength\":8,\"signals\":[{\"name\":\"Motor1High\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor1High\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":0,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"Motor2Low\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor2Low\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":8,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"Motor2High\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor2High\",\"comment\":\"\",\"encoding\":0,\"dataType\":1,\"startbit\":16,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"Motor3Low\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor3Low\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":24,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"Motor3High\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor3High\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":32,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"Motor4Low\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor4Low\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":40,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"Motor4High\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor4High\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":48,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"Motor4Low2\",\"qualifiedName\":\"M15 3D 233.SetPoint.Motor4Low2\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":56,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false}],\"canFrameFlags\":{\"flags\":[2]}}}"
+      }
+    },
+    {
+      "id": 3,
+      "containerData": {
+        "vertical": false,
+        "paneDataIds": [
+          5,
+          4
+        ],
+        "paneRatios": [
+          0.5,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "componentData": {
+        "componentId": "message-trace-view",
+        "componentProps": "{\"fixedPosition\":true,\"txFilter\":null,\"channelFilter\":null,\"protocolFilter\":null,\"maxDataBytes\":null,\"columnWidths\":{},\"interpreter\":{\"key\":\"None\",\"text\":\"\"},\"columns\":[\"messageName\",\"sourceName\",\"id\",\"flags\",\"dataLength\",\"dlc\",\"data\",\"time\",\"dir\",\"protocol\",\"deltaTime\"],\"allColumnsOrder\":[]}"
+      }
+    },
+    {
+      "id": 5,
+      "containerData": {
+        "vertical": true,
+        "paneDataIds": [
+          6
+        ],
+        "paneRatios": [
+          1
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "containerData": {
+        "vertical": true,
+        "paneDataIds": [
+          2,
+          7
+        ],
+        "paneRatios": [
+          0.5,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "componentData": {
+        "componentId": "can-periodic-send-view",
+        "componentProps": "{\"settings\":{\"channelIdentifier\":\"b73ac233-eb80-4905-8dee-61777b8b6746\",\"frame\":{\"id\":261,\"data\":[0,0,0,0,0,0,0,0],\"canFrameFlags\":{\"flags\":[2]}},\"randomInterval\":false,\"constantIntervalMs\":100,\"randomIntervalMinMs\":50,\"randomIntervalMaxMs\":500,\"numberOfMessages\":0,\"randomDataLength\":false,\"randomMessageData\":false,\"randomIdentifier\":false,\"scanIdentifier\":false,\"identifierMin\":0,\"identifierMax\":2047,\"randomBurstSize\":false,\"constantBurstSize\":1,\"randomBurstSizeMin\":1,\"randomBurstSizeMax\":5},\"channelCollapsed\":false,\"idCollapsed\":false,\"frameCollapsed\":false,\"intervalCollapsed\":false,\"nofMsgCollapsed\":true,\"burstSizeCollapsed\":true,\"message\":{\"id\":261,\"messageName\":\"ModeSetting\",\"messageQualifiedName\":\"M15 3D 233.ModeSetting\",\"dataLength\":8,\"signals\":[{\"name\":\"MotorID1Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID1Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":0,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{\"0\":\"Voltage Open\",\"1\":\"Current Control\",\"2\":\"Speed Control\",\"3\":\"Position Control\",\"9\":\"Disable Motor\",\"10\":\"Enable Motor\"},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"MotorID2Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID2Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":8,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{\"0\":\"Voltage Control\",\"1\":\"Current Control\",\"2\":\"Speed Control\",\"3\":\"Position Control\",\"9\":\"Disable Motor\",\"10\":\"Enable Motor\"},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"MotorID3Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID3Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":16,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"MotorID4Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID4Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":24,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"MotorID5Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID5Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":32,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"MotorID6Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID6Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":40,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"MotorID7Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID7Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":48,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false},{\"name\":\"MotorID8Mode\",\"qualifiedName\":\"M15 3D 233.ModeSetting.MotorID8Mode\",\"comment\":\"\",\"encoding\":0,\"dataType\":2,\"startbit\":56,\"length\":8,\"unit\":\"\",\"factor\":1,\"offset\":0,\"minValue\":0,\"maxValue\":0,\"enumValues\":{},\"isMultiplexer\":false,\"isMultiplexed\":false}],\"canFrameFlags\":{\"flags\":[2]}}}"
+      }
+    }
+  ]
+}
