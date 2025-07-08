@@ -1,0 +1,8 @@
+{
+	"files.associations": {
+		"*.h": "c",
+		"*.ftl": "c",
+		"type_traits": "cpp",
+		"port.c": "cpp"
+	}
+}

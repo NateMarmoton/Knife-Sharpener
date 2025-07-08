@@ -1,0 +1,76 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 152 MotorFeedback: 8 Vector__XXX
+ SG_ MotorCurrent : 23|16@0- (0.001678467,0) [-55.000006656|54.998328189] "A" Vector__XXX
+ SG_ MotorSpeed : 7|16@0- (0.01,0) [-327.68|327.67] "RPM" Vector__XXX
+ SG_ MotorPosition : 39|16@0+ (0.010986328,0) [0|0] "Deg" Vector__XXX
+ SG_ Fault : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Mode : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 261 ModeSetting: 8 Vector__XXX
+ SG_ MotorID1Mode : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ MotorID2Mode : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ MotorID3Mode : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ MotorID4Mode : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ MotorID5Mode : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ MotorID6Mode : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ MotorID7Mode : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ MotorID8Mode : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 50 SetPoint: 8 Vector__XXX
+ SG_ Motor1High : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Motor2Low : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Motor2High : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ Motor3Low : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Motor3High : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Motor4Low : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Motor4High : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ Motor4Low2 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+BA_DEF_  "MultiplexExtEnabled" ENUM  "No","Yes";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "MultiplexExtEnabled" "No";
+BA_DEF_DEF_  "BusType" "CAN";
+VAL_ 152 Fault 0 "No Fault" 1 "Under Voltage <18V" 2 "Under Voltage <22V" 3 "Over Voltage >63V" 10 "Over Current >20A" 20 "Over Speed" 32 "Over Temp > 80C" 31 "Over Temp >120C" 41 "Sampling Resistor Fault" 42 "Position Sensor Fault" 43 "Position Sensor Interference" 44 "Temperature Sensor Fault" 60 "Communication Timeout" 98 "Stall" ;
+VAL_ 152 Mode 0 "Voltage Open Loop" 1 "Current Feedback" 2 "Speed Feedback" 3 "Postion Feedback" 9 "Motor Disabled" 10 "Motor Enabled" ;
+VAL_ 261 MotorID1Mode 0 "Voltage Open" 1 "Current Control" 2 "Speed Control" 3 "Position Control" 9 "Disable Motor" 10 "Enable Motor" ;
+VAL_ 261 MotorID2Mode 0 "Voltage Control" 1 "Current Control" 2 "Speed Control" 3 "Position Control" 9 "Disable Motor" 10 "Enable Motor" ;
+
