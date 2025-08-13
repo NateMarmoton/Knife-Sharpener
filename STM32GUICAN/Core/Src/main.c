@@ -1,0 +1,511 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "adc.h"
+#include "crc.h"
+#include "dma.h"
+#include "fdcan.h"
+#include "spi.h"
+#include "tim.h"
+#include "gpio.h"
+#include "app_touchgfx.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include <FreeRTOS.h>
+#include <task.h>
+#include "stm32g0xx_hal_conf.h"
+#include "st7789.h"
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+typedef struct
+{
+	uint16_t POT;
+	uint16_t CurrentSense;
+	uint16_t Temp;
+
+} APP_ADC_BUF_t;
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+
+/* USER CODE BEGIN PV */
+TaskHandle_t             GUI_TaskHandle;
+TaskHandle_t             ADC_TaskHandle;
+
+APP_ADC_BUF_t            ADC_Buffer;
+
+float                    Temperature;
+float                    POT;
+float                    CurrentSense;
+
+extern SPI_HandleTypeDef hspi1;
+static volatile uint8_t  spi_busy = 0;
+
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+/* USER CODE BEGIN PFP */
+void          touchgfx_taskEntry(void);
+
+void          configureTimerForRunTimeStats(void);
+unsigned long getRunTimeCounterValue(void);
+
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+__weak void          configureTimerForRunTimeStats(void) { }
+
+__weak unsigned long getRunTimeCounterValue(void)
+{
+	return 0;
+}
+
+
+
+static void LCD_2IN_Write_Command(uint8_t data)
+{
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DC_GPIO_Port, DC_Pin, GPIO_PIN_RESET);
+	HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi1, (uint8_t*)&data, 1, 500);
+}
+static void LCD_2IN_WriteData_Byte(uint8_t data)
+{
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DC_GPIO_Port, DC_Pin, GPIO_PIN_SET);
+	HAL_SPI_Transmit(&hspi1, (uint8_t*)&data, 1, 500);
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
+}
+
+void LCD_2IN_WriteData_Word(uint16_t data)
+{
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DC_GPIO_Port, DC_Pin, GPIO_PIN_SET);
+	HAL_SPI_Transmit(&hspi1, (uint8_t*)&data, 2, 500);
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
+}
+
+static void LCD_2IN_Reset(void)
+{
+	HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_RESET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+}
+
+void LCD_2IN_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend)
+{
+	LCD_2IN_Write_Command(0x2a);
+	LCD_2IN_WriteData_Byte(Xstart >> 8);
+	LCD_2IN_WriteData_Byte(Xstart & 0xff);
+	LCD_2IN_WriteData_Byte((Xend - 1) >> 8);
+	LCD_2IN_WriteData_Byte((Xend - 1) & 0xff);
+
+	LCD_2IN_Write_Command(0x2b);
+	LCD_2IN_WriteData_Byte(Ystart >> 8);
+	LCD_2IN_WriteData_Byte(Ystart & 0xff);
+	LCD_2IN_WriteData_Byte((Yend - 1) >> 8);
+	LCD_2IN_WriteData_Byte((Yend - 1) & 0xff);
+
+	LCD_2IN_Write_Command(0x2C);
+}
+
+void LCD_2IN_Clear(uint16_t Color)
+{
+	uint16_t i, j;
+	LCD_2IN_SetWindow(0, 0, 240, 320);
+
+	HAL_GPIO_WritePin(DC_GPIO_Port, DC_Pin, GPIO_PIN_SET);
+	for(i = 0; i < 240; i++)
+	{
+		for(j = 0; j < 320; j++)
+		{
+			LCD_2IN_WriteData_Word(Color);
+		}
+	}
+}
+void GUITask(void* argument)
+{
+	UNUSED(argument);
+
+
+	/* RESET THE DISPLAY */
+	LCD_2IN_Reset();
+	LCD_2IN_Write_Command(0x36);
+	LCD_2IN_WriteData_Byte(0x00);
+
+	LCD_2IN_Write_Command(0x3A);
+	LCD_2IN_WriteData_Byte(0x05);
+
+	LCD_2IN_Write_Command(0x21);
+
+	LCD_2IN_Write_Command(0x2A);
+	LCD_2IN_WriteData_Byte(0x00);
+	LCD_2IN_WriteData_Byte(0x00);
+	LCD_2IN_WriteData_Byte(0x01);
+	LCD_2IN_WriteData_Byte(0x3F);
+
+	LCD_2IN_Write_Command(0x2B);
+	LCD_2IN_WriteData_Byte(0x00);
+	LCD_2IN_WriteData_Byte(0x00);
+	LCD_2IN_WriteData_Byte(0x00);
+	LCD_2IN_WriteData_Byte(0xEF);
+
+	LCD_2IN_Write_Command(0xB2);
+	LCD_2IN_WriteData_Byte(0x0C);
+	LCD_2IN_WriteData_Byte(0x0C);
+	LCD_2IN_WriteData_Byte(0x00);
+	LCD_2IN_WriteData_Byte(0x33);
+	LCD_2IN_WriteData_Byte(0x33);
+
+	LCD_2IN_Write_Command(0xB7);
+	LCD_2IN_WriteData_Byte(0x35);
+
+	LCD_2IN_Write_Command(0xBB);
+	LCD_2IN_WriteData_Byte(0x1F);
+
+	LCD_2IN_Write_Command(0xC0);
+	LCD_2IN_WriteData_Byte(0x2C);
+
+	LCD_2IN_Write_Command(0xC2);
+	LCD_2IN_WriteData_Byte(0x01);
+
+	LCD_2IN_Write_Command(0xC3);
+	LCD_2IN_WriteData_Byte(0x12);
+
+	LCD_2IN_Write_Command(0xC4);
+	LCD_2IN_WriteData_Byte(0x20);
+
+	LCD_2IN_Write_Command(0xC6);
+	LCD_2IN_WriteData_Byte(0x0F);
+
+	LCD_2IN_Write_Command(0xD0);
+	LCD_2IN_WriteData_Byte(0xA4);
+	LCD_2IN_WriteData_Byte(0xA1);
+
+	LCD_2IN_Write_Command(0xE0);
+	LCD_2IN_WriteData_Byte(0xD0);
+	LCD_2IN_WriteData_Byte(0x08);
+	LCD_2IN_WriteData_Byte(0x11);
+	LCD_2IN_WriteData_Byte(0x08);
+	LCD_2IN_WriteData_Byte(0x0C);
+	LCD_2IN_WriteData_Byte(0x15);
+	LCD_2IN_WriteData_Byte(0x39);
+	LCD_2IN_WriteData_Byte(0x33);
+	LCD_2IN_WriteData_Byte(0x50);
+	LCD_2IN_WriteData_Byte(0x36);
+	LCD_2IN_WriteData_Byte(0x13);
+	LCD_2IN_WriteData_Byte(0x14);
+	LCD_2IN_WriteData_Byte(0x29);
+	LCD_2IN_WriteData_Byte(0x2D);
+
+	LCD_2IN_Write_Command(0xE1);
+	LCD_2IN_WriteData_Byte(0xD0);
+	LCD_2IN_WriteData_Byte(0x08);
+	LCD_2IN_WriteData_Byte(0x10);
+	LCD_2IN_WriteData_Byte(0x08);
+	LCD_2IN_WriteData_Byte(0x06);
+	LCD_2IN_WriteData_Byte(0x06);
+	LCD_2IN_WriteData_Byte(0x39);
+	LCD_2IN_WriteData_Byte(0x44);
+	LCD_2IN_WriteData_Byte(0x51);
+	LCD_2IN_WriteData_Byte(0x0B);
+	LCD_2IN_WriteData_Byte(0x16);
+	LCD_2IN_WriteData_Byte(0x14);
+	LCD_2IN_WriteData_Byte(0x2F);
+	LCD_2IN_WriteData_Byte(0x31);
+	LCD_2IN_Write_Command(0x21);
+
+	LCD_2IN_Write_Command(0x11);
+
+	LCD_2IN_Write_Command(0x29);
+
+
+
+
+	/* Infinite loop */
+	for(;;)
+	{
+		LCD_2IN_Clear(0xFFFF);
+
+		vTaskDelay(100);
+
+		LCD_2IN_Clear(0xFF00);
+		
+		vTaskDelay(100);
+	}
+}
+
+void ADCTask(void* argument)
+{
+	UNUSED(argument);
+	HAL_ADCEx_Calibration_Start(&hadc1);
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_Buffer, sizeof(ADC_Buffer) / sizeof(uint16_t));
+
+	/* Infinite loop */
+	for(;;)
+	{
+		vTaskDelay(1000);
+		Temperature  = __LL_ADC_CALC_TEMPERATURE(3312, ADC_Buffer.Temp, LL_ADC_RESOLUTION_12B);
+		CurrentSense = ((ADC_Buffer.CurrentSense * 3312 / 4095) - 1650) * 1000 / 132;
+		__NOP();
+	}
+}
+
+/* USER CODE END 0 */
+
+/**
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void)
+{
+
+	/* USER CODE BEGIN 1 */
+
+	/* USER CODE END 1 */
+
+	/* MCU Configuration--------------------------------------------------------*/
+
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
+
+	/* USER CODE BEGIN Init */
+
+	/* USER CODE END Init */
+
+	/* Configure the system clock */
+	SystemClock_Config();
+
+	/* USER CODE BEGIN SysInit */
+
+	/* USER CODE END SysInit */
+
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_DMA_Init();
+	MX_CRC_Init();
+	MX_ADC1_Init();
+	MX_FDCAN1_Init();
+	MX_SPI1_Init();
+	MX_TIM2_Init();
+	MX_TouchGFX_Init();
+	/* USER CODE BEGIN 2 */
+
+
+
+	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LPM3V3_GPIO_Port, LPM3V3_Pin, GPIO_PIN_SET);
+
+
+	HAL_GPIO_WritePin(DC_GPIO_Port, DC_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RST_GPIO_Port, RST_Pin, GPIO_PIN_RESET);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+	TIM2->CCR1 = 500;
+
+
+
+	/* Create FreeRTOS tasks */
+	xTaskCreate(GUITask, "GUI Task", 4096, NULL, osPriorityNormal, &GUI_TaskHandle);
+	xTaskCreate(ADCTask, "ADC Task", 256, NULL, osPriorityNormal, &ADC_TaskHandle);
+
+	/* USER CODE END 2 */
+
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+
+	vTaskStartScheduler();
+
+	while(1)
+	{
+		/* USER CODE END WHILE */
+
+		MX_TouchGFX_Process();
+		/* USER CODE BEGIN 3 */
+	}
+	/* USER CODE END 3 */
+}
+
+/**
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void)
+{
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+	/** Configure the main internal regulator output voltage
+	 */
+	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+	/** Initializes the RCC Oscillators according to the specified parameters
+	 * in the RCC_OscInitTypeDef structure.
+	 */
+	RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI;
+	RCC_OscInitStruct.HSIState            = RCC_HSI_ON;
+	RCC_OscInitStruct.HSIDiv              = RCC_HSI_DIV1;
+	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+	RCC_OscInitStruct.PLL.PLLState        = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource       = RCC_PLLSOURCE_HSI;
+	RCC_OscInitStruct.PLL.PLLM            = RCC_PLLM_DIV1;
+	RCC_OscInitStruct.PLL.PLLN            = 8;
+	RCC_OscInitStruct.PLL.PLLP            = RCC_PLLP_DIV2;
+	RCC_OscInitStruct.PLL.PLLQ            = RCC_PLLQ_DIV2;
+	RCC_OscInitStruct.PLL.PLLR            = RCC_PLLR_DIV2;
+	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	/** Initializes the CPU, AHB and APB buses clocks
+	 */
+	RCC_ClkInitStruct.ClockType      = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
+	RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+
+	if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+	{
+		Error_Handler();
+	}
+}
+
+/* USER CODE BEGIN 4 */
+
+void touchgfxDisplayDriverTransmitBlock(const uint8_t* pixels, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+{
+
+	// Set ST7789 address window here (send CASET/RASET commands)
+	// Example: st7789_set_address_window(x, y, w, h);
+
+	// Start SPI DMA transfer
+	spi_busy = 1;
+	HAL_SPI_Transmit_DMA(&hspi1, (uint8_t*)pixels, w * h * 2);  // 2 bytes per pixel (RGB565)
+	                                                            // startNewTransfer();
+}
+
+
+int touchgfxDisplayDriverTransmitActive()
+{
+	return spi_busy;
+}
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef* hspi)
+{
+	if(hspi == &hspi1)
+	{
+		spi_busy = 0;
+		// DisplayDriver_TransferCompleteCallback();
+	}
+}
+
+
+
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char* pcTaskName)
+{
+	/* Run time stack overflow checking is performed if
+	configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+	called if a stack overflow is detected. */
+
+	UNUSED(xTask);
+	UNUSED(pcTaskName);
+	__disable_irq();
+
+	// BSP_GOTOSAFE();
+
+	while(1)
+	{
+		/* Infinite loop */
+	}
+}
+/* USER CODE END 4 */
+
+/**
+ * @brief  Period elapsed callback in non blocking mode
+ * @note   This function is called  when TIM17 interrupt took place, inside
+ * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+ * a global variable "uwTick" used as application time base.
+ * @param  htim : TIM handle
+ * @retval None
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+	/* USER CODE BEGIN Callback 0 */
+
+	/* USER CODE END Callback 0 */
+	if(htim->Instance == TIM17)
+	{
+		HAL_IncTick();
+	}
+	/* USER CODE BEGIN Callback 1 */
+
+	/* USER CODE END Callback 1 */
+}
+
+/**
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void)
+{
+	/* USER CODE BEGIN Error_Handler_Debug */
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while(1)
+	{ }
+	/* USER CODE END Error_Handler_Debug */
+}
+#ifdef USE_FULL_ASSERT
+/**
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
+void assert_failed(uint8_t* file, uint32_t line)
+{
+	/* USER CODE BEGIN 6 */
+	/* User can add his own implementation to report the file name and line number,
+	   ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+	/* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
