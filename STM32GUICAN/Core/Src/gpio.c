@@ -54,8 +54,7 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, RST_Pin|DC_Pin|CS_Pin|LPM3V3_Pin
-                          |MotorEn_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, ST7789_RST_Pin|ST7789_DC_Pin|LPM3V3_Pin|MotorEn_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, CAN_STB_Pin|CAN_SHDN_Pin, GPIO_PIN_RESET);
@@ -72,14 +71,19 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RST_Pin DC_Pin CS_Pin LPM3V3_Pin
-                           MotorEn_Pin */
-  GPIO_InitStruct.Pin = RST_Pin|DC_Pin|CS_Pin|LPM3V3_Pin
-                          |MotorEn_Pin;
+  /*Configure GPIO pins : ST7789_RST_Pin LPM3V3_Pin MotorEn_Pin */
+  GPIO_InitStruct.Pin = ST7789_RST_Pin|LPM3V3_Pin|MotorEn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ST7789_DC_Pin */
+  GPIO_InitStruct.Pin = ST7789_DC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(ST7789_DC_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA6 PA7 PA10 PA11
                            PA12 */

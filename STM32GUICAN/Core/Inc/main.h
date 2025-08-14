@@ -57,14 +57,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define RST_Pin GPIO_PIN_0
-#define RST_GPIO_Port GPIOA
+#define ST7789_SPI SPI1
+#define ST7789_DMA DMA2_Channel1
+#define ST7789_RST_Pin GPIO_PIN_0
+#define ST7789_RST_GPIO_Port GPIOA
 #define CLK_Pin GPIO_PIN_1
 #define CLK_GPIO_Port GPIOA
 #define DIN_Pin GPIO_PIN_2
 #define DIN_GPIO_Port GPIOA
-#define DC_Pin GPIO_PIN_3
-#define DC_GPIO_Port GPIOA
+#define ST7789_DC_Pin GPIO_PIN_3
+#define ST7789_DC_GPIO_Port GPIOA
 #define CS_Pin GPIO_PIN_4
 #define CS_GPIO_Port GPIOA
 #define BL_Pin GPIO_PIN_5

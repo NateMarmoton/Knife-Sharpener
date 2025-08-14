@@ -1,19 +1,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
-#define ST7789_RST_PORT              GPIOA
-#define ST7789_RST_PIN               GPIO_ODR_ODR9
-#define ST7789_DC_PORT               GPIOA
-#define ST7789_DC_PIN                GPIO_ODR_ODR8
-#define ST7789_SPI                   SPI1
-#define ST7789_DMA                   DMA1_Channel3
-
 #define ST7789_PRESCALER             16
 #define ST7789_OSC_MHZ               8
 
 #define ST7789_LCD_WIDTH             240
-#define ST7789_LCD_HEIGHT            240
+#define ST7789_LCD_HEIGHT            320
 
 // System Function Command Table 1
 #define ST7789_CMD_NOP               0x00 // No operation
@@ -109,19 +101,16 @@ typedef struct st7789_Command {
 	const uint8_t *data;
 } st7789_Command;
 
-void st7789_WaitNanosecs(uint32_t nanosecs);
 void st7789_Reset(void);
 void st7789_StartCommand(void);
 void st7789_StartData(void);
 void st7789_WriteSpi(uint8_t data);
-void st7789_ReadSpi(uint8_t *data, size_t length);
 void st7789_WriteDMA(void *data, uint16_t length);
 void st7789_WaitForDMA(void);
-void st7789_ReadCommand(uint8_t command, void *data, size_t length);
 void st7789_WriteCommand(uint8_t command, const void *data, size_t length);
 void st7789_RunCommand(const st7789_Command *command);
 void st7789_RunCommands(const st7789_Command *sequence);
-void st7789_Init_1_3_LCD(void);
+void st7789_Init(void);
 void st7789_StartMemoryWrite(void);
 void st7789_SetWindow(uint16_t xStart, uint16_t yStart, uint16_t xEnd, uint16_t yEnd);
 void st7789_FillArea(uint16_t color, uint16_t startX, uint16_t startY, uint16_t width, uint16_t height);
