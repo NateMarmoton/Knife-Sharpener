@@ -31,6 +31,7 @@
 /* USER CODE BEGIN Includes */
 #include <FreeRTOS.h>
 #include <task.h>
+#include "semphr.h"
 #include "stm32g0xx_hal_conf.h"
 #include "st7789.h"
 /* USER CODE END Includes */
@@ -48,7 +49,7 @@ typedef struct
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+extern void DisplayDriver_TransferCompleteCallback();
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -62,6 +63,8 @@ typedef struct
 TaskHandle_t             GUI_TaskHandle;
 TaskHandle_t             ADC_TaskHandle;
 
+SemaphoreHandle_t        SPI1_SemaphoreHandle;
+
 APP_ADC_BUF_t            ADC_Buffer;
 
 float                    Temperature;
@@ -69,8 +72,9 @@ float                    POT;
 float                    CurrentSense;
 
 extern SPI_HandleTypeDef hspi1;
-static volatile uint8_t  spi_busy = 0;
+extern DMA_HandleTypeDef hdma_spi1_tx;
 
+static volatile bool     isTransmittingBlock = false;
 
 /* USER CODE END PV */
 
@@ -94,7 +98,16 @@ __weak unsigned long getRunTimeCounterValue(void)
 {
 	return 0;
 }
+// void FrameBufferAllocatorWaitOnTransfer()
+// {
+// 	while(!transferring)
+// 		;
+// }
 
+// void FrameBufferAllocatorSignalBlockDrawn()
+// {
+// 	transferring = false;
+// }
 
 void GUITask(void* argument)
 {
@@ -110,9 +123,9 @@ void GUITask(void* argument)
 	{
 		st7789_Clear(0xFFFF);
 		vTaskDelay(500);
-		// MX_TouchGFX_Process();
 		st7789_Clear(0x00FF);
 		vTaskDelay(500);
+		MX_TouchGFX_Process();
 	}
 }
 
@@ -172,19 +185,18 @@ int main(void)
   MX_TouchGFX_Init();
   /* USER CODE BEGIN 2 */
 
-
-
 	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LPM3V3_GPIO_Port, LPM3V3_Pin, GPIO_PIN_SET);
 
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 	TIM2->CCR1 = 500;
 
-
+	/* Create the SPI1 binary semaphore */
+	SPI1_SemaphoreHandle = xSemaphoreCreateBinary();
 
 	/* Create FreeRTOS tasks */
-	xTaskCreate(GUITask, "GUI Task", 4096, NULL, osPriorityNormal, &GUI_TaskHandle);
-	xTaskCreate(ADCTask, "ADC Task", 256, NULL, osPriorityNormal, &ADC_TaskHandle);
+	xTaskCreate(GUITask, "GUI Task", 10000, NULL, osPriorityNormal, &GUI_TaskHandle);
+	// xTaskCreate(ADCTask, "ADC Task", 256, NULL, osPriorityNormal, &ADC_TaskHandle);
 
   /* USER CODE END 2 */
 
@@ -254,27 +266,44 @@ void SystemClock_Config(void)
 void touchgfxDisplayDriverTransmitBlock(const uint8_t* pixels, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
 
-	// Set ST7789 address window here (send CASET/RASET commands)
-	// Example: st7789_set_address_window(x, y, w, h);
 
-	// Start SPI DMA transfer
-	spi_busy = 1;
-	HAL_SPI_Transmit_DMA(&hspi1, (uint8_t*)pixels, w * h * 2);  // 2 bytes per pixel (RGB565)
-	                                                            // startNewTransfer();
+	isTransmittingBlock = true;
+	st7789_SetWindow(x, y, x + w - 1, y + h - 1);
+	st7789_WriteDMA(&pixels, w * h * 2);
+	st7789_WaitForDMA();
+	DisplayDriver_TransferCompleteCallback();
+	isTransmittingBlock = false;
+
+	// st7789_SetWindow(x, y, x + w - 1, y + h - 1);
+	// size_t   bytestToWrite = w * h * 2;
+	// uint16_t transferSize  = (uint16_t)2048 * 2;
+	// while(bytestToWrite > 0)
+	// {
+	// 	if(bytestToWrite < transferSize)
+	// 	{
+	// 		transferSize = bytestToWrite;
+	// 	}
+	// 	bytestToWrite -= transferSize;
+	// 	st7789_WriteDMA(&pixels, transferSize);
+	// 	st7789_WaitForDMA();
+	// 	transferring = false;
+	// 	DisplayDriver_TransferCompleteCallback();
+	// }
 }
 
 
 int touchgfxDisplayDriverTransmitActive()
 {
-	return spi_busy;
+	return isTransmittingBlock ? 1 : 0;
 }
+
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef* hspi)
 {
 	if(hspi == &hspi1)
 	{
-		spi_busy = 0;
-		// DisplayDriver_TransferCompleteCallback();
+		isTransmittingBlock = false;
+		/* Not sure what to do here. Seems slow compared to the st7789_WaitForDMA() function */
 	}
 }
 

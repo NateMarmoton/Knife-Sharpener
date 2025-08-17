@@ -5,13 +5,15 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 
-#define LCD_FILL_BUFFER_SIZE 64
+#define LCD_FILL_BUFFER_SIZE 2048
 
 extern SPI_HandleTypeDef hspi1;
+extern SemaphoreHandle_t SPI1_SemaphoreHandle;
 
 
-void st7789_Reset(void)
+void                     st7789_Reset(void)
 {
 	HAL_GPIO_WritePin(ST7789_RST_GPIO_Port, ST7789_RST_Pin, GPIO_PIN_RESET);
 	vTaskDelay(1);
@@ -47,14 +49,16 @@ void st7789_WriteSpi(uint8_t data)
 
 void __attribute__((weak)) st7789_WriteDMA(void* data, uint16_t length)
 {
-	ST7789_DMA->CCR   = (DMA_CCR_MINC | DMA_CCR_DIR);  // Memory increment, direction to peripherial
-	ST7789_DMA->CMAR  = (uint32_t)data;                // Source address
-	ST7789_DMA->CPAR  = (uint32_t)&ST7789_SPI->DR;     // Destination address
-	ST7789_DMA->CNDTR = length;
-	ST7789_SPI->CR1 &= ~(SPI_CR1_SPE);   // Disable SPI
-	ST7789_SPI->CR2 |= SPI_CR2_TXDMAEN;  // Enable DMA transfer
-	ST7789_SPI->CR1 |= SPI_CR1_SPE;      // Enable SPI
-	ST7789_DMA->CCR |= DMA_CCR_EN;       // Start DMA transfer
+	// xSemaphoreTake(SPI1_SemaphoreHandle, 100);
+	HAL_SPI_Transmit_DMA(&hspi1, data, length);
+	// ST7789_DMA->CCR   = (DMA_CCR_MINC | DMA_CCR_DIR);  // Memory increment, direction to peripherial
+	// ST7789_DMA->CMAR  = (uint32_t)data;                // Source address
+	// ST7789_DMA->CPAR  = (uint32_t)&ST7789_SPI->DR;     // Destination address
+	// ST7789_DMA->CNDTR = length;
+	// ST7789_SPI->CR1 &= ~(SPI_CR1_SPE);   // Disable SPI
+	// ST7789_SPI->CR2 |= SPI_CR2_TXDMAEN;  // Enable DMA transfer
+	// ST7789_SPI->CR1 |= SPI_CR1_SPE;      // Enable SPI
+	// ST7789_DMA->CCR |= DMA_CCR_EN;       // Start DMA transfer
 }
 
 
@@ -112,9 +116,9 @@ void st7789_Init(void)
 	const uint8_t        raset[4]       = {0x00, 0x00, (ST7789_LCD_HEIGHT - 1) >> 8, (ST7789_LCD_HEIGHT - 1) & 0xff};
 	const st7789_Command initSequence[] = {
 	    // Sleep
-	    // {ST7789_CMD_SLPIN, 10, 0, NULL},                    // Sleep
-	    // {ST7789_CMD_SWRESET, 200, 0, NULL},                 // Reset
-	    // {ST7789_CMD_SLPOUT, 120, 0, NULL},                   // Sleep out
+	    {ST7789_CMD_SLPIN, 10, 0, NULL},                    // Sleep
+	    {ST7789_CMD_SWRESET, 200, 0, NULL},                 // Reset
+	    {ST7789_CMD_SLPOUT, 120, 0, NULL},                   // Sleep out
 	    {ST7789_CMD_MADCTL, 0, 1, (const uint8_t*)"\x00"},  // Page / column address order
 	    {ST7789_CMD_COLMOD, 0, 1, (const uint8_t*)"\x55"},  // 16 bit RGB
 	    {ST7789_CMD_INVON, 0, 0, NULL},                     // Inversion on
@@ -137,8 +141,8 @@ void st7789_Init(void)
 	    // Set VDS to 2.3V, AVCL to -4.8V and AVDD to 6.8V
 	    {ST7789_CMD_PWCTRL1, 0, 2, (const uint8_t*)"\xa4\xa1"},
 	    // Gamma corection
-	    {ST7789_CMD_PVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x11\x08\x0c\x15\x39\x33\x50\x36\x13\x14\x29\x2d"},
-	    {ST7789_CMD_NVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x10\x08\x06\x06\x39\x44\x51\x0b\x16\x14\x2f\x31"},
+	    {ST7789_CMD_PVGAMCTRL, 0, 14, (const uint8_t*)"\xd0\x08\x11\x08\x0c\x15\x39\x33\x50\x36\x13\x14\x29\x2d"},
+	    {ST7789_CMD_NVGAMCTRL, 0, 14, (const uint8_t*)"\xd0\x08\x10\x08\x06\x06\x39\x44\x51\x0b\x16\x14\x2f\x31"},
 	    // Little endian
 	    // {ST7789_CMD_RAMCTRL, 0, 2, (const uint8_t*)"\x00\x08"},
 	    {ST7789_CMDLIST_END, 0, 0, NULL},  // End of commands

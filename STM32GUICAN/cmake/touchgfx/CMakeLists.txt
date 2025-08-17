@@ -20,9 +20,10 @@ set(TouchGFX_Include_Dirs
 # TouchGFX generated application sources
 set(TouchGFX_Src
     ${CMAKE_SOURCE_DIR}/TouchGFX/gui/src/common/FrontendApplication.cpp
+    ${CMAKE_SOURCE_DIR}/TouchGFX/gui/src/containers/CustomContainer1.cpp
+    ${CMAKE_SOURCE_DIR}/TouchGFX/gui/src/mainscreen_screen/MainScreenPresenter.cpp
+    ${CMAKE_SOURCE_DIR}/TouchGFX/gui/src/mainscreen_screen/MainScreenView.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/gui/src/model/Model.cpp
-    ${CMAKE_SOURCE_DIR}/TouchGFX/gui/src/screen1_screen/Screen1Presenter.cpp
-    ${CMAKE_SOURCE_DIR}/TouchGFX/gui/src/screen1_screen/Screen1View.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/fonts/src/ApplicationFontProvider.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/fonts/src/CachedFont.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/fonts/src/CompressedFontCache.cpp
@@ -41,11 +42,12 @@ set(TouchGFX_Src
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/fonts/src/UnmappedDataFont.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/fonts/src/VectorFontRendererBuffers.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/gui_generated/src/common/FrontendApplicationBase.cpp
-    ${CMAKE_SOURCE_DIR}/TouchGFX/generated/gui_generated/src/screen1_screen/Screen1ViewBase.cpp
+    ${CMAKE_SOURCE_DIR}/TouchGFX/generated/gui_generated/src/containers/CustomContainer1Base.cpp
+    ${CMAKE_SOURCE_DIR}/TouchGFX/generated/gui_generated/src/mainscreen_screen/MainScreenViewBase.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/images/src/BitmapDatabase.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/images/src/SVGDatabase.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/images/src/__generated/image_alternate_theme_images_widgets_gauge_medium_backgrounds_active.cpp
-    ${CMAKE_SOURCE_DIR}/TouchGFX/generated/images/src/__generated/image_alternate_theme_images_widgets_gauge_medium_needles_smooth.cpp
+    ${CMAKE_SOURCE_DIR}/TouchGFX/generated/images/src/__generated/image_alternate_theme_images_widgets_gauge_medium_needles_rough.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/texts/src/LanguageGb.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/texts/src/Texts.cpp
     ${CMAKE_SOURCE_DIR}/TouchGFX/generated/texts/src/TypedTextDatabase.cpp
