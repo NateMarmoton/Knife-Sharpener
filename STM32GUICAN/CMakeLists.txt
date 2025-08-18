@@ -42,9 +42,6 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
-# Add touchgfx generated sources and libraries
-add_subdirectory(cmake/touchgfx)
-
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
@@ -59,6 +56,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    ${freertos_kernel_SOURCE_DIR}/include
+
 )
 
 # Add project symbols (macros)
@@ -76,8 +75,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     # Add user defined libraries
     freertos_kernel
     freertos_config
+    lvgl
 )
 
+# Get and Include FreeRTOS
 
 FetchContent_Declare( 
   freertos_kernel
@@ -98,9 +99,28 @@ target_compile_definitions(freertos_config
     projCOVERAGE_TEST=0
 )
 
-
 set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
 # Select the native compile PORT
 set( FREERTOS_PORT "GCC_ARM_CM0" CACHE STRING "" FORCE)
 
 FetchContent_MakeAvailable( freertos_kernel )
+
+# Get and Include LVGL
+
+FetchContent_Declare(
+    lvgl
+    GIT_REPOSITORY https://github.com/lvgl/lvgl.git
+    GIT_TAG v9.2.2
+)
+
+
+set(LV_CONF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/lv_conf.h CACHE STRING "" FORCE) # Adjust path as needed
+
+# Add FreeRTOS include paths globally
+include_directories(
+    ${freertos_kernel_SOURCE_DIR}/include
+    ${freertos_kernel_SOURCE_DIR}/portable/GCC/ARM_CM0
+)
+
+FetchContent_MakeAvailable( lvgl )
+

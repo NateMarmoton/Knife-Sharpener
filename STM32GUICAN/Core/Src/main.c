@@ -25,7 +25,6 @@
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
-#include "app_touchgfx.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -34,6 +33,8 @@
 #include "semphr.h"
 #include "stm32g0xx_hal_conf.h"
 #include "st7789.h"
+
+#include "lvgl.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -125,7 +126,6 @@ void GUITask(void* argument)
 		vTaskDelay(500);
 		st7789_Clear(0x00FF);
 		vTaskDelay(500);
-		MX_TouchGFX_Process();
 	}
 }
 
@@ -182,7 +182,6 @@ int main(void)
   MX_FDCAN1_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
-  MX_TouchGFX_Init();
   /* USER CODE BEGIN 2 */
 
 	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_RESET);
@@ -209,7 +208,6 @@ int main(void)
 	{
     /* USER CODE END WHILE */
 
-  MX_TouchGFX_Process();
     /* USER CODE BEGIN 3 */
 	}
   /* USER CODE END 3 */
