@@ -107,6 +107,7 @@ NVIC.ForceEnableDMAVector=true
 NVIC.HardFault_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.NonMaskableInt_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.PendSV_IRQn=true\:0\:0\:false\:false\:false\:false\:false\:false
+NVIC.SPI1_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 NVIC.SVC_IRQn=true\:0\:0\:false\:false\:false\:false\:false\:true
 NVIC.SysTick_IRQn=true\:3\:0\:false\:false\:false\:false\:true\:false
 NVIC.TIM17_FDCAN_IT1_IRQn=true\:3\:0\:false\:false\:true\:false\:true\:true
