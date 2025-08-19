@@ -50,19 +50,24 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    Core/Src/st7789.c
+    # Core/Src/st7789.c
+    # UI/src/ui/ui.c
+    # UI/src/ui/eez-flow.cpp
+    # UI/src/ui/images.c
+    # UI/src/ui/screens.c
+    # UI/src/ui/styles.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    ${freertos_kernel_SOURCE_DIR}/include
-
+    # UI/src/ui
 )
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
+
 )
 
 # Remove wrong libob.a library dependency when using cpp files
@@ -106,6 +111,9 @@ set( FREERTOS_PORT "GCC_ARM_CM0" CACHE STRING "" FORCE)
 FetchContent_MakeAvailable( freertos_kernel )
 
 # Get and Include LVGL
+set(LV_CONF_BUILD_DISABLE_DEMOS 1)
+set(LV_CONF_BUILD_DISABLE_EXAMPLES 1)
+set(LV_CONF_BUILD_DISABLE_THORVG_INTERNAL 1)
 
 FetchContent_Declare(
     lvgl

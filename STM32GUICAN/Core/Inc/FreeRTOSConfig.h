@@ -94,7 +94,8 @@ void            xPortSysTickHandler(void);
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
 #define configKERNEL_PROVIDED_STATIC_MEMORY     1
 #define configUSE_IDLE_HOOK                     0
-#define configUSE_TICK_HOOK                     0
+#define configUSE_TICK_HOOK                     1
+#define vApplicationTickHook(void)              freeRTOS_TickHook();
 #define configCPU_CLOCK_HZ                      (SystemCoreClock)
 #define configTICK_RATE_HZ                      (1000UL)
 #define configMINIMAL_STACK_SIZE                ((uint16_t)128)
@@ -126,7 +127,7 @@ void            xPortSysTickHandler(void);
 to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet                1
 #define INCLUDE_uxTaskPriorityGet               1
-// #define INCLUDE_vTaskDelete                     1
+#define INCLUDE_vTaskDelete                     1
 #define INCLUDE_vTaskSuspend                    1
 // #define INCLUDE_vTaskDelayUntil                 1
 #define INCLUDE_vTaskDelay                      1

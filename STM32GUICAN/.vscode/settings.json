@@ -1,3 +1,9 @@
 {
-    "cortex-debug.variableUseNaturalFormat": true
+    "cortex-debug.variableUseNaturalFormat": true,
+    "files.associations": {
+        "*.h": "c",
+        "*.ftl": "c",
+        "*.stanza": "stanza",
+        "string": "c"
+    }
 }

@@ -59,16 +59,16 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define ST7789_SPI SPI1
 #define ST7789_DMA DMA2_Channel1
-#define ST7789_RST_Pin GPIO_PIN_0
-#define ST7789_RST_GPIO_Port GPIOA
-#define CLK_Pin GPIO_PIN_1
-#define CLK_GPIO_Port GPIOA
-#define DIN_Pin GPIO_PIN_2
-#define DIN_GPIO_Port GPIOA
-#define ST7789_DC_Pin GPIO_PIN_3
-#define ST7789_DC_GPIO_Port GPIOA
-#define CS_Pin GPIO_PIN_4
-#define CS_GPIO_Port GPIOA
+#define LCD_RESET_Pin GPIO_PIN_0
+#define LCD_RESET_GPIO_Port GPIOA
+#define LCD_SCK_Pin GPIO_PIN_1
+#define LCD_SCK_GPIO_Port GPIOA
+#define LCD_SDI_Pin GPIO_PIN_2
+#define LCD_SDI_GPIO_Port GPIOA
+#define LCD_DCX_Pin GPIO_PIN_3
+#define LCD_DCX_GPIO_Port GPIOA
+#define LCD_CS_Pin GPIO_PIN_4
+#define LCD_CS_GPIO_Port GPIOA
 #define BL_Pin GPIO_PIN_5
 #define BL_GPIO_Port GPIOA
 #define POT_Pin GPIO_PIN_0

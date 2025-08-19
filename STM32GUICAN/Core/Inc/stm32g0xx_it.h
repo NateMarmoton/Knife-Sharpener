@@ -51,6 +51,7 @@ void HardFault_Handler(void);
 void DMA1_Channel1_IRQHandler(void);
 void DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQHandler(void);
 void TIM17_FDCAN_IT1_IRQHandler(void);
+void SPI1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
