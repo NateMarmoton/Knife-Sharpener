@@ -35,6 +35,8 @@
 
 #include "lvgl.h"
 #include "./src/drivers/display/st7789/lv_st7789.h"
+#include "ui.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -80,7 +82,6 @@ float         CurrentSense;
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-void          ui_init(lv_display_t* disp);
 void          LVGL_Task(void* argument);
 
 void          ADC_Task(void* argument);
@@ -155,7 +156,7 @@ int main(void)
 	// Initialise LVGL UI library
 
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-	TIM2->CCR1 = 1000;
+	TIM2->CCR1 = 2000;
 
 
 	/* Create FreeRTOS tasks */
@@ -342,7 +343,7 @@ void LVGL_Task(void* argument)
 	}
 	lv_display_set_buffers(lcd_disp, buf1, buf2, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
-	ui_init(lcd_disp);
+	ui_init();
 
 	for(;;)
 	{
@@ -351,25 +352,6 @@ void LVGL_Task(void* argument)
 		/* raise the task priority of LVGL and/or reduce the handler period can improve the performance */
 		vTaskDelay(10);
 	}
-}
-
-void ui_init(lv_display_t* disp)
-{
-	lv_obj_t* obj;
-
-	/* set screen background to white */
-	lv_obj_t* scr = lv_screen_active();
-	lv_obj_set_style_bg_color(scr, lv_color_white(), 0);
-	lv_obj_set_style_bg_opa(scr, LV_OPA_100, 0);
-
-	/* create label */
-	obj = lv_label_create(scr);
-	lv_obj_set_align(obj, LV_ALIGN_CENTER);
-	lv_obj_set_height(obj, LV_SIZE_CONTENT);
-	lv_obj_set_width(obj, LV_SIZE_CONTENT);
-	lv_obj_set_style_text_font(obj, &lv_font_montserrat_14, 0);
-	lv_obj_set_style_text_color(obj, lv_color_black(), 0);
-	lv_label_set_text(obj, "Hello World!");
 }
 
 void ADC_Task(void* argument)

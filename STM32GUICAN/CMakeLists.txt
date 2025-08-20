@@ -51,17 +51,16 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     # Core/Src/st7789.c
-    # UI/src/ui/ui.c
-    # UI/src/ui/eez-flow.cpp
-    # UI/src/ui/images.c
-    # UI/src/ui/screens.c
-    # UI/src/ui/styles.c
+    UI/ui.c
+    UI/images.c
+    UI/screens.c
+    UI/styles.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    # UI/src/ui
+    UI/
 )
 
 # Add project symbols (macros)
