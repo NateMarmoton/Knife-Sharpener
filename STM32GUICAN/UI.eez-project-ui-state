@@ -21,6 +21,7 @@
           },
           {
             "type": "border",
+            "selected": 4,
             "size": 240,
             "location": "right",
             "children": [
@@ -68,6 +69,7 @@
           },
           {
             "type": "border",
+            "selected": 0,
             "location": "bottom",
             "children": [
               {
@@ -161,6 +163,14 @@
                       "component": "flow-structure",
                       "enableClose": false,
                       "icon": "svg:hierarchy"
+                    },
+                    {
+                      "type": "tab",
+                      "id": "COMPONENTS_PALETTE",
+                      "name": "Components Palette",
+                      "component": "componentsPalette",
+                      "enableClose": false,
+                      "icon": "svg:components"
                     }
                   ]
                 },
@@ -185,7 +195,7 @@
             {
               "type": "tabset",
               "id": "EDITORS",
-              "weight": 65,
+              "weight": 52.510330578512395,
               "selected": 1,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
@@ -213,45 +223,23 @@
                   },
                   "icon": "svg:page"
                 }
-              ],
-              "active": true
+              ]
             },
             {
-              "type": "row",
-              "id": "#ca0fffcd-c1e9-4dac-ab7f-1e4ba4e60c29",
-              "weight": 20,
+              "type": "tabset",
+              "id": "#5ddd07e7-825e-4bfe-a644-8246e25ab40a",
+              "weight": 32.489669421487605,
               "children": [
                 {
-                  "type": "tabset",
-                  "id": "#5ddd07e7-825e-4bfe-a644-8246e25ab40a",
-                  "weight": 2,
-                  "children": [
-                    {
-                      "type": "tab",
-                      "id": "PROPERTIES",
-                      "name": "Properties",
-                      "component": "propertiesPanel",
-                      "enableClose": false,
-                      "icon": "svg:properties"
-                    }
-                  ]
-                },
-                {
-                  "type": "tabset",
-                  "id": "#ac6f61d4-53fe-4fe3-867b-50abdae13793",
-                  "weight": 1,
-                  "children": [
-                    {
-                      "type": "tab",
-                      "id": "COMPONENTS_PALETTE",
-                      "name": "Components Palette",
-                      "component": "componentsPalette",
-                      "enableClose": false,
-                      "icon": "svg:components"
-                    }
-                  ]
+                  "type": "tab",
+                  "id": "PROPERTIES",
+                  "name": "Properties",
+                  "component": "propertiesPanel",
+                  "enableClose": false,
+                  "icon": "svg:properties"
                 }
-              ]
+              ],
+              "active": true
             }
           ]
         }
@@ -949,7 +937,8 @@
                       "component": "groups",
                       "enableClose": false
                     }
-                  ]
+                  ],
+                  "active": true
                 },
                 {
                   "type": "tabset",
@@ -982,13 +971,16 @@
     "[UI.eez-project]:/userPages/0[flow-state]": {
       "selection": {
         "0": {
-          "0": {}
+          "0": {},
+          "2": {
+            "$selected": true
+          }
         }
       },
       "transform": {
         "translate": {
-          "x": -400,
-          "y": -240
+          "x": -105,
+          "y": -334.00000762939453
         },
         "scale": 1
       },
@@ -1011,9 +1003,12 @@
   "showComponentDescriptions": true,
   "logsPanelFilter": "all",
   "selectedStylePropertyName": "",
-  "lvglPart": "MAIN",
+  "lvglPart": "INDICATOR",
   "lvglState": "DEFAULT",
-  "lvglExpandedPropertiesGroup": [],
+  "lvglExpandedPropertiesGroup": [
+    "TEXT",
+    "LINE"
+  ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
   "flowZoom": 1,

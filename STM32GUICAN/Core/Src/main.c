@@ -156,11 +156,11 @@ int main(void)
 	// Initialise LVGL UI library
 
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-	TIM2->CCR1 = 2000;
+	TIM2->CCR1 = 1000;
 
 
 	/* Create FreeRTOS tasks */
-	xTaskCreate(LVGL_Task, "LVGL Task", 1024, NULL, osPriorityIdle, &LvglTaskHandle);
+	xTaskCreate(LVGL_Task, "LVGL Task", 1024, NULL, osPriorityNormal - 1, &LvglTaskHandle);
 	xTaskCreate(ADC_Task, "ADC Task", 256, NULL, osPriorityNormal, &ADC_TaskHandle);
 
 	/* USER CODE END 2 */
@@ -173,7 +173,7 @@ int main(void)
 	while(1)
 	{
 		/* USER CODE END WHILE */
-    __NOP();
+		__NOP();
 		/* USER CODE BEGIN 3 */
 	}
 	/* USER CODE END 3 */
@@ -308,6 +308,13 @@ static void lcd_send_color(lv_display_t* disp, const uint8_t* cmd, size_t cmd_si
 	}
 }
 
+
+void action_turn_on_disp(lv_event_t* e)
+{
+	LV_UNUSED(e);
+	TIM2->CCR1 = 1000;
+}
+
 void LVGL_Task(void* argument)
 {
 	/* Initialize LVGL */
@@ -321,11 +328,13 @@ void LVGL_Task(void* argument)
 	lcd_disp = lv_st7789_create(LCD_H_RES, LCD_V_RES, LV_LCD_FLAG_NONE, lcd_send_cmd, lcd_send_color);
 	lv_display_set_rotation(lcd_disp, LV_DISPLAY_ROTATION_270);
 
+
+
 	/* Allocate draw buffers on the heap. In this example we use two partial buffers of 1/10th size of the screen */
 	lv_color_t* buf1 = NULL;
 	lv_color_t* buf2 = NULL;
 
-	uint32_t    buf_size = LCD_H_RES * LCD_V_RES / 10 * lv_color_format_get_size(lv_display_get_color_format(lcd_disp));
+	uint32_t    buf_size = LCD_H_RES * LCD_V_RES / 100 * lv_color_format_get_size(lv_display_get_color_format(lcd_disp));
 
 	buf1 = lv_malloc(buf_size);
 	if(buf1 == NULL)
