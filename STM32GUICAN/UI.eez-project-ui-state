@@ -971,10 +971,10 @@
     "[UI.eez-project]:/userPages/0[flow-state]": {
       "selection": {
         "0": {
-          "0": {},
-          "2": {
+          "0": {
             "$selected": true
-          }
+          },
+          "2": {}
         }
       },
       "transform": {
@@ -1006,8 +1006,7 @@
   "lvglPart": "INDICATOR",
   "lvglState": "DEFAULT",
   "lvglExpandedPropertiesGroup": [
-    "TEXT",
-    "LINE"
+    "ARC"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,

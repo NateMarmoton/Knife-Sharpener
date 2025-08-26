@@ -213,7 +213,7 @@
                 "childStyles": []
               },
               "locked": false,
-              "hiddenInEditor": true,
+              "hiddenInEditor": false,
               "timeline": [],
               "eventHandlers": [],
               "leftUnit": "px",
@@ -237,12 +237,20 @@
                 "definition": {
                   "INDICATOR": {
                     "DEFAULT": {
-                      "arc_width": 12
+                      "arc_width": 5,
+                      "arc_rounded": false,
+                      "arc_color": "#d34747",
+                      "arc_opa": 255
                     }
                   },
                   "KNOB": {
                     "DEFAULT": {
                       "bg_opa": 0
+                    }
+                  },
+                  "MAIN": {
+                    "DEFAULT": {
+                      "arc_color": "#ffffff"
                     }
                   }
                 }
@@ -322,7 +330,7 @@
               "MAIN": {
                 "DEFAULT": {
                   "img_recolor": "#814475",
-                  "bg_color": "#d96969"
+                  "bg_color": "#ffffff"
                 }
               }
             }

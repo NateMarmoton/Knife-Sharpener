@@ -55,6 +55,7 @@ typedef struct
 #define LCD_H_RES             240
 #define LCD_V_RES             320
 #define BUS_SPI1_POLL_TIMEOUT 0x1000U
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -286,7 +287,7 @@ static void lcd_send_color(lv_display_t* disp, const uint8_t* cmd, size_t cmd_si
 	LV_UNUSED(disp);
 	while(lcd_bus_busy)
 		; /* wait until previous transfer is finished */
-	/* Set the SPI in 8-bit mode */
+	// /* Set the SPI in 8-bit mode */
 	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
 	HAL_SPI_Init(&hspi1);
 	/* DCX low (command) */
@@ -315,6 +316,11 @@ void action_turn_on_disp(lv_event_t* e)
 	TIM2->CCR1 = 1000;
 }
 
+static const uint8_t cmdlist[] = {
+    0x21,      0, 
+    LV_LCD_CMD_DELAY_MS, LV_LCD_CMD_EOF
+};
+
 void LVGL_Task(void* argument)
 {
 	/* Initialize LVGL */
@@ -326,15 +332,15 @@ void LVGL_Task(void* argument)
 
 	/* Create the LVGL display object and the LCD display driver */
 	lcd_disp = lv_st7789_create(LCD_H_RES, LCD_V_RES, LV_LCD_FLAG_NONE, lcd_send_cmd, lcd_send_color);
+	lv_st7789_send_cmd_list(lcd_disp, cmdlist);
 	lv_display_set_rotation(lcd_disp, LV_DISPLAY_ROTATION_270);
 
+	uint32_t    buf_size = LCD_H_RES * LCD_V_RES / 10 * lv_color_format_get_size(lv_display_get_color_format(lcd_disp));
 
 
 	/* Allocate draw buffers on the heap. In this example we use two partial buffers of 1/10th size of the screen */
 	lv_color_t* buf1 = NULL;
 	lv_color_t* buf2 = NULL;
-
-	uint32_t    buf_size = LCD_H_RES * LCD_V_RES / 100 * lv_color_format_get_size(lv_display_get_color_format(lcd_disp));
 
 	buf1 = lv_malloc(buf_size);
 	if(buf1 == NULL)
