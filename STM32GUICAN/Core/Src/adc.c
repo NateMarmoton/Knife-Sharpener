@@ -76,6 +76,14 @@ void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
+  sConfig.Channel = ADC_CHANNEL_VREFINT;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
   sConfig.Channel = ADC_CHANNEL_8;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {

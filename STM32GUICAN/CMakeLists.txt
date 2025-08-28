@@ -55,6 +55,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     UI/images.c
     UI/screens.c
     UI/styles.c
+    UI/ui_font_jet_brains_mono.c
 )
 
 # Add include paths

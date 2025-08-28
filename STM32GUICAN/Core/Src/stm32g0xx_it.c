@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    stm32g0xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    stm32g0xx_it.c
+ * @brief   Interrupt Service Routines.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -43,7 +43,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+#if defined(configGENERATE_RUN_TIME_STATS)
+extern volatile unsigned long ulHighFrequencyTimerTicks;
+#endif /* configGENERATE_RUN_TIME_STATS */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -79,9 +81,8 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-   while (1)
-  {
-  }
+	while(1)
+	{ }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
@@ -146,7 +147,7 @@ void TIM17_FDCAN_IT1_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim17);
   HAL_FDCAN_IRQHandler(&hfdcan1);
   /* USER CODE BEGIN TIM17_FDCAN_IT1_IRQn 1 */
-  lv_tick_inc(1);
+	lv_tick_inc(1);
   /* USER CODE END TIM17_FDCAN_IT1_IRQn 1 */
 }
 

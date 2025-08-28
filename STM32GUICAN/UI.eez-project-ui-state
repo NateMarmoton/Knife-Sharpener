@@ -1,6 +1,8 @@
 {
   "navigation": {
     "selectedUserPageObject": "[UI.eez-project]:/userPages/0",
+    "selectedFontObject": "[UI.eez-project]:/fonts/0",
+    "selectedGlyphObject": "[UI.eez-project]:/fonts/0/glyphs/-1",
     "subnavigationSelectedItems": {}
   },
   "layoutModel": {
@@ -21,7 +23,7 @@
           },
           {
             "type": "border",
-            "selected": 4,
+            "selected": 0,
             "size": 240,
             "location": "right",
             "children": [
@@ -116,12 +118,13 @@
             {
               "type": "row",
               "id": "#dba6bca8-db30-49a2-abca-f300a8647bf5",
-              "weight": 15,
+              "weight": 18.216376586529677,
               "children": [
                 {
                   "type": "tabset",
                   "id": "#4613e674-30ff-4044-a58b-fe606b12ef6e",
                   "weight": 1,
+                  "selected": 1,
                   "enableClose": false,
                   "children": [
                     {
@@ -195,23 +198,10 @@
             {
               "type": "tabset",
               "id": "EDITORS",
-              "weight": 52.510330578512395,
-              "selected": 1,
+              "weight": 49.29395399198271,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
-                {
-                  "type": "tab",
-                  "id": "#27eb0b95-a6a9-461b-ae58-7a2086af40a9",
-                  "name": "Settings",
-                  "component": "editor",
-                  "config": {
-                    "objectPath": "[UI.eez-project]:/settings",
-                    "subObjectPath": "[UI.eez-project]:/settings",
-                    "permanent": false
-                  },
-                  "icon": "material:settings"
-                },
                 {
                   "type": "tab",
                   "id": "#375ea75b-e5ef-4222-8b65-2c12d85cefac",
@@ -223,7 +213,8 @@
                   },
                   "icon": "svg:page"
                 }
-              ]
+              ],
+              "active": true
             },
             {
               "type": "tabset",
@@ -238,8 +229,7 @@
                   "enableClose": false,
                   "icon": "svg:properties"
                 }
-              ],
-              "active": true
+              ]
             }
           ]
         }
@@ -585,7 +575,8 @@
                   "component": "glyphs",
                   "enableClose": false
                 }
-              ]
+              ],
+              "active": true
             },
             {
               "type": "tabset",
@@ -758,7 +749,8 @@
                       "component": "styles",
                       "enableClose": false
                     }
-                  ]
+                  ],
+                  "active": true
                 },
                 {
                   "type": "tabset",
@@ -971,9 +963,7 @@
     "[UI.eez-project]:/userPages/0[flow-state]": {
       "selection": {
         "0": {
-          "0": {
-            "$selected": true
-          },
+          "0": {},
           "2": {}
         }
       },
@@ -1006,7 +996,8 @@
   "lvglPart": "INDICATOR",
   "lvglState": "DEFAULT",
   "lvglExpandedPropertiesGroup": [
-    "ARC"
+    "POSITION AND SIZE",
+    "TEXT"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,

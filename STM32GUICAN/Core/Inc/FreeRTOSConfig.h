@@ -76,12 +76,14 @@ void            xPortSysTickHandler(void);
 
 
 /* DEBUGGING DEFINITIONS */
-#define configGENERATE_RUN_TIME_STATS           1
+#define configGENERATE_RUN_TIME_STATS           0
 #define configCHECK_FOR_STACK_OVERFLOW          2
 #define configUSE_TRACE_FACILITY                1
-#define configUSE_STATS_FORMATTING_FUNCTIONS    1
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS  configureTimerForRunTimeStats
-#define portGET_RUN_TIME_COUNTER_VALUE          getRunTimeCounterValue
+#if configGENERATE_RUN_TIME_STATS
+#	define configUSE_STATS_FORMATTING_FUNCTIONS   1
+#	define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS configureTimerForRunTimeStats
+#	define portGET_RUN_TIME_COUNTER_VALUE         getRunTimeCounterValue
+#endif
 #define configUSE_MALLOC_FAILED_HOOK            1
 #define vApplicationMallocFailedHook(void)      Error_Handler(void);
 
