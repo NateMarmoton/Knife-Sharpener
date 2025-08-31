@@ -33,8 +33,11 @@
 #include "semphr.h"
 #include "stm32g0xx_hal_conf.h"
 
+#include "canbus.h"
+
+#include "lcd.h"
+
 #include "lvgl.h"
-#include "./src/drivers/display/st7789/lv_st7789.h"
 #include "ui.h"
 
 /* USER CODE END Includes */
@@ -53,10 +56,13 @@ typedef struct
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LCD_H_RES             240
-#define LCD_V_RES             320
-#define BUS_SPI1_POLL_TIMEOUT 0x1000U
+
 extern objects_t objects;
+extern FDCAN_TxHeaderTypeDef      ModeTxHeader;
+extern FDCAN_TxHeaderTypeDef      SetPointTxHeader; 
+extern uint8_t                    TxData[8];
+
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,13 +74,11 @@ extern objects_t objects;
 
 /* USER CODE BEGIN PV */
 TaskHandle_t  LvglTaskHandle;
-lv_display_t* lcd_disp;
-volatile int  lcd_bus_busy = 0;
+TaskHandle_t  UI_TaskHandle;
 
-TaskHandle_t  ADC_TaskHandle;
 APP_ADC_BUF_t ADC_Buffer;
 float         POT;
-float         CurrentSense;
+
 
 #if configGENERATE_RUN_TIME_STATS
 volatile unsigned long     ulHighFrequencyTimerTicks;
@@ -87,30 +91,14 @@ extern LPTIM_HandleTypeDef hlptim2;
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-void          LVGL_Task(void* argument);
+void UI_Task(void* argument);
 
-void          ADC_Task(void* argument);
-
-void          configureTimerForRunTimeStats(void);
-unsigned long getRunTimeCounterValue(void);
+void LVGL_Task(void* argument);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-#if configGENERATE_RUN_TIME_STATS
-
-void configureTimerForRunTimeStats(void)
-{
-	ulHighFrequencyTimerTicks = 0;
-	HAL_LPTIM_Counter_Start_IT(&hlptim2, 0xFFFF);
-}
-unsigned long getRunTimeCounterValue(void)
-{
-	return ulHighFrequencyTimerTicks;
-}
-#endif
 
 /* USER CODE END 0 */
 
@@ -150,7 +138,6 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-	// Initialise LVGL UI library
 
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 	TIM2->CCR1 = 0;
@@ -158,6 +145,7 @@ int main(void)
 
 	/* Create FreeRTOS tasks */
 	xTaskCreate(LVGL_Task, "LVGL Task", 1024, NULL, osPriorityNormal, &LvglTaskHandle);
+	xTaskCreate(UI_Task, "UI Task", 1024, NULL, osPriorityHigh, &UI_TaskHandle);
 
   /* USER CODE END 2 */
 
@@ -224,97 +212,75 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 
-void lcd_color_transfer_ready_cb(SPI_HandleTypeDef* hspi)
+
+#define USER_SHORT_PRESS_DEBOUNCE 25    // ms
+#define USER_LONG_PRESS_TIME      2000  // ms
+#define USER_DOUBLE_PRESS_TIME    300   // ms
+
+void UI_Task(void* argument)
 {
-	/* CS high */
-	HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
-	lcd_bus_busy = 0;
-	lv_display_flush_ready(lcd_disp);
-}
 
-/* Initialize LCD I/O bus, reset LCD */
-static int32_t lcd_io_init(void)
-{
-	/* Register SPI Tx Complete Callback */
-	HAL_SPI_RegisterCallback(&hspi1, HAL_SPI_TX_COMPLETE_CB_ID, lcd_color_transfer_ready_cb);
+	uint32_t ButtonPressTime          = 0;
+	uint32_t ButtonReleaseTime        = 0;
 
-	/* reset LCD */
-	HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_RESET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_SET);
-	HAL_Delay(100);
-
-	HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET);
-
-	return HAL_OK;
-}
-
-/* Platform-specific implementation of the LCD send command function. In general this should use polling transfer. */
-static void lcd_send_cmd(lv_display_t* disp, const uint8_t* cmd, size_t cmd_size, const uint8_t* param, size_t param_size)
-{
-	LV_UNUSED(disp);
-	while(lcd_bus_busy)
-		; /* wait until previous transfer is finished */
-	/* Set the SPI in 8-bit mode */
-	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-	HAL_SPI_Init(&hspi1);
-	/* DCX low (command) */
-	HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_RESET);
-	/* CS low */
-	HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_RESET);
-	/* send command */
-	if(HAL_SPI_Transmit(&hspi1, cmd, cmd_size, BUS_SPI1_POLL_TIMEOUT) == HAL_OK)
+	uint32_t ulNotifiedValue = 0xFFFF;
+	for(;;)
 	{
-		/* DCX high (data) */
-		HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET);
-		/* for short data blocks we use polling transfer */
-		HAL_SPI_Transmit(&hspi1, (uint8_t*)param, (uint16_t)param_size, BUS_SPI1_POLL_TIMEOUT);
-		/* CS high */
-		HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
+		xTaskNotifyWait(NULL, NULL, &ulNotifiedValue, portMAX_DELAY);  // Wait for notification from ISR
+
+		if(ulNotifiedValue & USER_BUTTON_PRESS)
+		{
+			// Handle button press
+			ulTaskNotifyValueClear(NULL, USER_BUTTON_PRESS);
+
+			ButtonPressTime = HAL_GetTick();  // Record the time of button press
+		}
+
+		if(ulNotifiedValue & USER_BUTTON_RELEASE)
+		{
+			// Handle button release
+			ulTaskNotifyValueClear(NULL, USER_BUTTON_RELEASE);
+			ButtonReleaseTime = HAL_GetTick();  // Record the time of button release
+		}
+
+		if(ButtonPressTime != 0 && ButtonReleaseTime != 0)
+		{
+			uint32_t ButtonPressDuration = ButtonReleaseTime - ButtonPressTime;
+
+			if(ButtonPressDuration >= USER_LONG_PRESS_TIME)
+			{
+				// Long press detected
+
+			} else if(ButtonPressDuration > USER_SHORT_PRESS_DEBOUNCE)
+			{
+				// Short press detected
+
+				uint32_t Mode;
+				xTaskNotifyWaitIndexed(USER_BUTTON_MODE, 0x0000, 0x0000, &Mode, 0);
+
+				TxData[0] = 0x00;
+				TxData[1] = Mode;
+				TxData[2] = 0x00;
+				TxData[3] = 0x00;
+				TxData[4] = 0x00;
+				TxData[5] = 0x00;
+				TxData[6] = 0x00;
+				TxData[7] = 0x00;
+
+				/* Start the Transmission process */
+				if(HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &ModeTxHeader, TxData) != HAL_OK)
+				{
+					/* Transmission request Error */
+					Error_Handler();
+				}
+			}
+			ButtonPressTime   = 0;  // Reset the press time
+			ButtonReleaseTime = 0;  // Reset the release time
+		}
 	}
 }
 
-/* Platform-specific implementation of the LCD send color function. For better performance this should use DMA transfer.
- * In case of a DMA transfer a callback must be installed to notify LVGL about the end of the transfer.
- */
-static void lcd_send_color(lv_display_t* disp, const uint8_t* cmd, size_t cmd_size, uint8_t* param, size_t param_size)
-{
-	LV_UNUSED(disp);
-	while(lcd_bus_busy)
-		; /* wait until previous transfer is finished */
-	// /* Set the SPI in 8-bit mode */
-	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-	HAL_SPI_Init(&hspi1);
-	/* DCX low (command) */
-	HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_RESET);
-	/* CS low */
-	HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_RESET);
-	/* send command */
-	if(HAL_SPI_Transmit(&hspi1, cmd, cmd_size, BUS_SPI1_POLL_TIMEOUT) == HAL_OK)
-	{
-		/* DCX high (data) */
-		HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET);
-		/* for color data use DMA transfer */
-		/* Set the SPI in 16-bit mode to match endianness */
-		hspi1.Init.DataSize = SPI_DATASIZE_16BIT;
-		HAL_SPI_Init(&hspi1);
-		lcd_bus_busy = 1;
-		HAL_SPI_Transmit_DMA(&hspi1, param, (uint16_t)param_size / 2);
-		/* NOTE: CS will be reset in the transfer ready callback */
-	}
-}
-
-
-void action_turn_on_disp(lv_event_t* e)
-{
-	LV_UNUSED(e);
-	TIM2->CCR1 = 1000;
-}
-
-static const uint8_t cmdlist[] = {0x21, 0, LV_LCD_CMD_DELAY_MS, LV_LCD_CMD_EOF};
-
-void                 LVGL_Task(void* argument)
+void LVGL_Task(void* argument)
 {
 	/* Initialize LVGL */
 	lv_init();
@@ -324,62 +290,73 @@ void                 LVGL_Task(void* argument)
 		return;
 
 	/* Create the LVGL display object and the LCD display driver */
-	lcd_disp = lv_st7789_create(LCD_H_RES, LCD_V_RES, LV_LCD_FLAG_NONE, lcd_send_cmd, lcd_send_color);
-	lv_st7789_send_cmd_list(lcd_disp, cmdlist);
-	lv_display_set_rotation(lcd_disp, LV_DISPLAY_ROTATION_270);
-
-	uint32_t buf_size = LCD_H_RES * LCD_V_RES / 10 * lv_color_format_get_size(lv_display_get_color_format(lcd_disp));
-
-
-	/* Allocate draw buffers on the heap. In this example we use two partial buffers of 1/10th size of the screen */
-	lv_color_t* buf1 = NULL;
-	lv_color_t* buf2 = NULL;
-
-	buf1 = lv_malloc(buf_size);
-	if(buf1 == NULL)
-	{
-		LV_LOG_ERROR("display draw buffer malloc failed");
-		return;
-	}
-
-	buf2 = lv_malloc(buf_size);
-	if(buf2 == NULL)
-	{
-		LV_LOG_ERROR("display buffer malloc failed");
-		lv_free(buf1);
-		return;
-	}
-	lv_display_set_buffers(lcd_disp, buf1, buf2, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
+	lcd_init();
 
 	ui_init();
 
 	HAL_ADCEx_Calibration_Start(&hadc1);
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_Buffer, sizeof(ADC_Buffer) / sizeof(uint16_t));
 
-	for(;;)
+	for(int i = 0; i < 100; i++)
 	{
 		/* The task running lv_timer_handler should have lower priority than that running `lv_tick_inc` */
 		lv_timer_handler();
-		// Update temperature label every refresh
-		float vref = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
-		int temp = __LL_ADC_CALC_TEMPERATURE(vref, ADC_Buffer.Temp, LL_ADC_RESOLUTION_12B);
-		lv_label_set_text_fmt(objects.temperature_display, "%d°C", temp);
 		/* raise the task priority of LVGL and/or reduce the handler period can improve the performance */
 		vTaskDelay(10);
-		TIM2->CCR1 = 1000;
+	}
+	/* Configure CANBUS with TX messages and RX filters */
+	FDCAN_Config();
+
+	/* Enable the CAN transceiver */
+	HAL_GPIO_WritePin(CAN_VIO_GPIO_Port, CAN_VIO_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CAN_STB_GPIO_Port, CAN_STB_Pin, GPIO_PIN_RESET);
+
+	/* Put the 3V3 Buck chip into high performance mode before turning on the display backlight */
+	HAL_GPIO_WritePin(LPM3V3_GPIO_Port, LPM3V3_Pin, GPIO_PIN_SET);
+	TIM2->CCR1 = 1000;
+
+	/* Enable the Motor */
+	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_SET);
+
+	uint32_t MotorSpeed_int_addr;
+	uint32_t MotorCurrent_int_addr;
+	uint32_t MotorPosition_int_addr;
+	uint32_t Fault;
+	uint32_t Mode;
+
+	for(;;)
+	{
+		xTaskNotifyWaitIndexed(MOTOR_SPEED, 0x0000, 0x0000, &MotorSpeed_int_addr, 0);
+		xTaskNotifyWaitIndexed(MOTOR_CURRENT, 0x0000, 0x0000, &MotorCurrent_int_addr, 0);
+		xTaskNotifyWaitIndexed(MOTOR_POSITION, 0x0000, 0x0000, &MotorPosition_int_addr, 0);
+		xTaskNotifyWaitIndexed(FAULT, 0x0000, 0x0000, &Fault, 0);
+		xTaskNotifyWaitIndexed(MODE, 0x0000, 0x0000, &Mode, 0);
+
+		float MotorSpeed    = (int16_t)MotorSpeed_int_addr / 100.0f;
+		float MotorCurrent  = (int16_t)MotorCurrent_int_addr * 0.00167847f;
+		float MotorPosition = (int16_t)MotorPosition_int_addr * 0.0109863;
+
+		lv_arc_set_value(objects.gauge, (int32_t)(LV_ABS(MotorSpeed)));
+
+		/* Temperature Updates */
+		float vref = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
+		int   temp = __LL_ADC_CALC_TEMPERATURE(vref, ADC_Buffer.Temp, LL_ADC_RESOLUTION_12B);
+		lv_label_set_text_fmt(objects.temperature_display, "%d°C", temp);
+
+		/* Current Updates */
+		float current = ((ADC_Buffer.CurrentSense * vref / 4095) - 1650) * 1000 / 132;
+		lv_label_set_text_fmt(objects.current_display, "%.2fA", current / 1000);
+
+		/* The task running lv_timer_handler should have lower priority than that running `lv_tick_inc` */
+		lv_timer_handler();
+		/* raise the task priority of LVGL and/or reduce the handler period can improve the performance */
+		vTaskDelay(5);
 	}
 }
 
 void freeRTOS_TickHook()
 {
 	lv_tick_inc(portTICK_PERIOD_MS);
-}
-
-
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef* hspi)
-{
-	if(hspi == &hspi1)
-	{ }
 }
 
 
@@ -405,7 +382,7 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char* pcTaskName)
 
 /**
   * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM17 interrupt took place, inside
+  * @note   This function is called  when TIM15 interrupt took place, inside
   * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
   * a global variable "uwTick" used as application time base.
   * @param  htim : TIM handle
@@ -416,7 +393,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM17)
+  if (htim->Instance == TIM15)
   {
     HAL_IncTick();
   }

@@ -24,6 +24,10 @@
 /* USER CODE BEGIN Includes */
 #include "lvgl.h"
 #include "./src/tick/lv_tick.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,6 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+extern TaskHandle_t UI_TaskHandle;
 
 /* USER CODE END PD */
 
@@ -63,7 +68,7 @@ extern DMA_HandleTypeDef hdma_adc1;
 extern FDCAN_HandleTypeDef hfdcan1;
 extern DMA_HandleTypeDef hdma_spi1_tx;
 extern SPI_HandleTypeDef hspi1;
-extern TIM_HandleTypeDef htim17;
+extern TIM_HandleTypeDef htim15;
 
 /* USER CODE BEGIN EV */
 
@@ -109,6 +114,20 @@ void HardFault_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line 0 and line 1 interrupts.
+  */
+void EXTI0_1_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI0_1_IRQn 0 */
+
+  /* USER CODE END EXTI0_1_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(PB_Pin);
+  /* USER CODE BEGIN EXTI0_1_IRQn 1 */
+
+  /* USER CODE END EXTI0_1_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 channel 1 interrupt.
   */
 void DMA1_Channel1_IRQHandler(void)
@@ -137,6 +156,20 @@ void DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM15 global interrupt.
+  */
+void TIM15_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM15_IRQn 0 */
+
+  /* USER CODE END TIM15_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim15);
+  /* USER CODE BEGIN TIM15_IRQn 1 */
+	lv_tick_inc(1);
+  /* USER CODE END TIM15_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM16, FDCAN1_IT0 and FDCAN2_IT0 Interrupt.
   */
 void TIM16_FDCAN_IT0_IRQHandler(void)
@@ -158,10 +191,9 @@ void TIM17_FDCAN_IT1_IRQHandler(void)
   /* USER CODE BEGIN TIM17_FDCAN_IT1_IRQn 0 */
 
   /* USER CODE END TIM17_FDCAN_IT1_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim17);
   HAL_FDCAN_IRQHandler(&hfdcan1);
   /* USER CODE BEGIN TIM17_FDCAN_IT1_IRQn 1 */
-	lv_tick_inc(1);
+
   /* USER CODE END TIM17_FDCAN_IT1_IRQn 1 */
 }
 
@@ -180,5 +212,35 @@ void SPI1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+/**
+ * @brief  EXTI line detection callback.
+ * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
+ * @retval None
+ */
+void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin)
+{
+	/* Prevent unused argument(s) compilation warning */
+	UNUSED(GPIO_Pin);
+	xTaskNotifyFromISR(UI_TaskHandle, USER_BUTTON_PRESS, eSetBits, pdFALSE);
 
+	/* NOTE: This function should not be modified, when the callback is needed,
+	         the HAL_GPIO_EXTI_Rising_Callback could be implemented in the user file
+	 */
+}
+
+/**
+ * @brief  EXTI line detection callback.
+ * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
+ * @retval None
+ */
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin)
+{
+	/* Prevent unused argument(s) compilation warning */
+	UNUSED(GPIO_Pin);
+	xTaskNotifyFromISR(UI_TaskHandle, USER_BUTTON_RELEASE, eSetBits, pdFALSE);
+
+	/* NOTE: This function should not be modified, when the callback is needed,
+	         the HAL_GPIO_EXTI_Falling_Callback could be implemented in the user file
+	 */
+}
 /* USER CODE END 1 */

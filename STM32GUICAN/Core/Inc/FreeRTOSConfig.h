@@ -125,6 +125,9 @@ void            xPortSysTickHandler(void);
 #define configTIMER_QUEUE_LENGTH                10
 #define configTIMER_TASK_STACK_DEPTH            256
 
+/* Task notification definitions. */
+#define configTASK_NOTIFICATION_ARRAY_ENTRIES   5
+
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet                1

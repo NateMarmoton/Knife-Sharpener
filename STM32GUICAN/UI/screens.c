@@ -19,7 +19,6 @@ void create_screen_main() {
     objects.main = obj;
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 320, 240);
-    lv_obj_add_event_cb(obj, action_turn_on_disp, LV_EVENT_REFRESH, (void *)0);
     lv_obj_set_style_image_recolor(obj, lv_color_hex(0xff814475), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
     {
@@ -32,13 +31,15 @@ void create_screen_main() {
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_font(obj, &ui_font_jet_brains_mono, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text(obj, "I LIKE WAFFLES");
+            lv_label_set_text(obj, "Temp");
         }
         {
+            // gauge
             lv_obj_t *obj = lv_arc_create(parent_obj);
-            objects.obj0 = obj;
+            objects.gauge = obj;
             lv_obj_set_pos(obj, 60, 20);
             lv_obj_set_size(obj, 200, 200);
+            lv_arc_set_range(obj, 0, 180);
             lv_arc_set_value(obj, 25);
             lv_obj_set_style_arc_width(obj, 5, LV_PART_INDICATOR | LV_STATE_DEFAULT);
             lv_obj_set_style_arc_rounded(obj, false, LV_PART_INDICATOR | LV_STATE_DEFAULT);
@@ -56,6 +57,16 @@ void create_screen_main() {
             lv_scale_set_total_tick_count(obj, 31);
             lv_scale_set_major_tick_every(obj, 5);
             lv_scale_set_label_show(obj, true);
+        }
+        {
+            // current_display
+            lv_obj_t *obj = lv_label_create(parent_obj);
+            objects.current_display = obj;
+            lv_obj_set_pos(obj, 0, -97);
+            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+            lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_font(obj, &ui_font_jet_brains_mono, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_label_set_text(obj, "Current");
         }
     }
     

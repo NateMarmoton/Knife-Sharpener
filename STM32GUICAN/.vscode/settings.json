@@ -4,6 +4,7 @@
         "*.h": "c",
         "*.ftl": "c",
         "*.stanza": "stanza",
-        "string": "c"
+        "string": "c",
+        "compare": "c"
     }
 }

@@ -109,16 +109,7 @@
     "structures": [],
     "enums": []
   },
-  "actions": [
-    {
-      "objID": "62fe78cb-741c-4d7a-8904-f4f2ed0f7cf8",
-      "components": [],
-      "connectionLines": [],
-      "localVariables": [],
-      "userProperties": [],
-      "name": "TurnOnDisp"
-    }
-  ],
+  "actions": [],
   "userPages": [
     {
       "objID": "4b40eba7-b31a-468a-b887-11dfd0b6637f",
@@ -139,15 +130,7 @@
             "childStyles": []
           },
           "timeline": [],
-          "eventHandlers": [
-            {
-              "objID": "f29b6412-f4ce-4af4-8a2d-1014c44217b7",
-              "eventName": "REFRESH",
-              "handlerType": "action",
-              "action": "TurnOnDisp",
-              "userData": 0
-            }
-          ],
+          "eventHandlers": [],
           "leftUnit": "px",
           "topUnit": "px",
           "widthUnit": "px",
@@ -158,7 +141,7 @@
               "type": "LVGLLabelWidget",
               "left": 0,
               "top": -112,
-              "width": 112,
+              "width": 32,
               "height": 15,
               "customInputs": [],
               "customOutputs": [],
@@ -194,7 +177,7 @@
                 }
               },
               "groupIndex": 0,
-              "text": "I LIKE WAFFLES",
+              "text": "Temp",
               "textType": "literal",
               "longMode": "WRAP",
               "recolor": false
@@ -218,6 +201,7 @@
               "hiddenInEditor": false,
               "timeline": [],
               "eventHandlers": [],
+              "identifier": "gauge",
               "leftUnit": "px",
               "topUnit": "px",
               "widthUnit": "px",
@@ -261,7 +245,7 @@
               "groupIndex": 0,
               "rangeMin": 0,
               "rangeMinType": "literal",
-              "rangeMax": 100,
+              "rangeMax": 180,
               "rangeMaxType": "literal",
               "value": 25,
               "valueType": "literal",
@@ -317,6 +301,52 @@
               "totalTickCount": 31,
               "majorTickEvery": 5,
               "showLabels": true
+            },
+            {
+              "objID": "beb0e92f-22f7-474f-b628-cb27b8ed3702",
+              "type": "LVGLLabelWidget",
+              "left": 0,
+              "top": -97,
+              "width": 56,
+              "height": 15,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "1d964559-cada-4940-b8db-99560a08439b",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "current_display",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "content",
+              "heightUnit": "content",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlagType": "literal",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "c53cf79d-e5b0-4ee6-b5bb-354ed8eabfcf",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "align": "RIGHT_MID",
+                      "text_font": "JetBrains Mono"
+                    }
+                  }
+                }
+              },
+              "groupIndex": 0,
+              "text": "Current",
+              "textType": "literal",
+              "longMode": "WRAP",
+              "recolor": false
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",

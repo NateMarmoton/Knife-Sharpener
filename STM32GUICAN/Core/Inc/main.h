@@ -53,8 +53,12 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void action_turn_on_disp(lv_event_t* e);
-
+typedef enum
+{
+	USER_BUTTON_MODE    = 0,
+	USER_BUTTON_PRESS   = 1 << 0,  // Button pressed
+	USER_BUTTON_RELEASE = 1 << 1,  // Button released
+} UserButton_State_t;
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -82,10 +86,11 @@ void action_turn_on_disp(lv_event_t* e);
 #define MotorEn_GPIO_Port GPIOA
 #define PB_Pin GPIO_PIN_1
 #define PB_GPIO_Port GPIOD
+#define PB_EXTI_IRQn EXTI0_1_IRQn
 #define CAN_STB_Pin GPIO_PIN_6
 #define CAN_STB_GPIO_Port GPIOB
-#define CAN_SHDN_Pin GPIO_PIN_7
-#define CAN_SHDN_GPIO_Port GPIOB
+#define CAN_VIO_Pin GPIO_PIN_7
+#define CAN_VIO_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

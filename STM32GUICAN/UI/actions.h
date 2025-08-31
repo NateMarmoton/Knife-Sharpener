@@ -7,7 +7,6 @@
 extern "C" {
 #endif
 
-extern void action_turn_on_disp(lv_event_t * e);
 
 
 #ifdef __cplusplus
