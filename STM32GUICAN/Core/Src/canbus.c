@@ -1,6 +1,7 @@
 #include "canbus.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "main.h"
 
 FDCAN_TxHeaderTypeDef      ModeTxHeader;
 FDCAN_TxHeaderTypeDef      SetPointTxHeader;
@@ -31,21 +32,23 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 		/* Display LEDx */
 		if((RxHeader.Identifier == 0x98) && (RxHeader.IdType == FDCAN_STANDARD_ID) && (RxHeader.DataLength == FDCAN_DLC_BYTES_8))
 		{
-			int16_t MotorSpeed_int = (int16_t)((RxData[0] << 8) | RxData[1]);
-			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_SPEED, (uint32_t)MotorSpeed_int, eSetValueWithOverwrite, NULL);
+			int16_t MotorVelocity_int = (int16_t)((RxData[0] << 8) | RxData[1]);
+			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_VELOCITY, (uint32_t)MotorVelocity_int, eSetValueWithOverwrite, pdFALSE);
+			xTaskNotifyIndexedFromISR(UI_TaskHandle, MOTOR_VELOCITY, (uint32_t)MotorVelocity_int, eSetValueWithOverwrite, pdFALSE);
 
 			int16_t MotorCurrent_int = (int16_t)((RxData[2] << 8) | RxData[3]);
-			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_CURRENT, (uint32_t)MotorCurrent_int, eSetValueWithOverwrite, NULL);
+			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_CURRENT, (uint32_t)MotorCurrent_int, eSetValueWithOverwrite, pdFALSE);
+			xTaskNotifyIndexedFromISR(UI_TaskHandle, MOTOR_CURRENT, (uint32_t)MotorCurrent_int, eSetValueWithOverwrite, pdFALSE);
 
 			int16_t MotorPosition_int = (int16_t)((RxData[4] << 8) | RxData[5]);
-			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_POSITION, (uint32_t)MotorPosition_int, eSetValueWithOverwrite, NULL);
+			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_POSITION, (uint32_t)MotorPosition_int, eSetValueWithOverwrite, pdFALSE);
 
 			int8_t Fault_int = RxData[6];
-			xTaskNotifyIndexedFromISR(LvglTaskHandle, FAULT, (uint32_t)Fault_int, eSetValueWithOverwrite, NULL);
+			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_FAULTS, (uint32_t)Fault_int, eSetValueWithOverwrite, pdFALSE);
 
 			int8_t Mode_int = RxData[7];
-			xTaskNotifyIndexedFromISR(LvglTaskHandle, MODE, (uint32_t)Mode_int, eSetValueWithOverwrite, NULL);
-			xTaskNotifyIndexedFromISR(UI_TaskHandle, MODE, (uint32_t)Mode_int, eSetValueWithOverwrite, NULL);
+			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_MODE, (uint32_t)Mode_int, eSetValueWithOverwrite, pdFALSE);
+			xTaskNotifyIndexedFromISR(UI_TaskHandle, MOTOR_MODE, (uint32_t)Mode_int, eSetValueWithOverwrite, pdFALSE);
 		}
 	}
 }

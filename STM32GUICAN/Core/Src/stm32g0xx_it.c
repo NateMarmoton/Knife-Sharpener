@@ -64,11 +64,9 @@ extern volatile unsigned long ulHighFrequencyTimerTicks;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef hdma_adc1;
 extern FDCAN_HandleTypeDef hfdcan1;
-extern DMA_HandleTypeDef hdma_spi1_tx;
-extern SPI_HandleTypeDef hspi1;
-extern TIM_HandleTypeDef htim15;
+extern DMA_HandleTypeDef   hdma_spi1_tx;
+extern TIM_HandleTypeDef   htim15;
 
 /* USER CODE BEGIN EV */
 
@@ -78,32 +76,32 @@ extern TIM_HandleTypeDef htim15;
 /*           Cortex-M0+ Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
-  * @brief This function handles Non maskable interrupt.
-  */
+ * @brief This function handles Non maskable interrupt.
+ */
 void NMI_Handler(void)
 {
-  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+	/* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
-  /* USER CODE END NonMaskableInt_IRQn 0 */
-  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+	/* USER CODE END NonMaskableInt_IRQn 0 */
+	/* USER CODE BEGIN NonMaskableInt_IRQn 1 */
 	while(1)
 	{ }
-  /* USER CODE END NonMaskableInt_IRQn 1 */
+	/* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
 /**
-  * @brief This function handles Hard fault interrupt.
-  */
+ * @brief This function handles Hard fault interrupt.
+ */
 void HardFault_Handler(void)
 {
-  /* USER CODE BEGIN HardFault_IRQn 0 */
+	/* USER CODE BEGIN HardFault_IRQn 0 */
 
-  /* USER CODE END HardFault_IRQn 0 */
-  while (1)
-  {
-    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-    /* USER CODE END W1_HardFault_IRQn 0 */
-  }
+	/* USER CODE END HardFault_IRQn 0 */
+	while(1)
+	{
+		/* USER CODE BEGIN W1_HardFault_IRQn 0 */
+		/* USER CODE END W1_HardFault_IRQn 0 */
+	}
 }
 
 /******************************************************************************/
@@ -114,101 +112,59 @@ void HardFault_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles EXTI line 0 and line 1 interrupts.
-  */
-void EXTI0_1_IRQHandler(void)
+ * @brief This function handles EXTI line 4 to 15 interrupts.
+ */
+void EXTI4_15_IRQHandler(void)
 {
-  /* USER CODE BEGIN EXTI0_1_IRQn 0 */
+	/* USER CODE BEGIN EXTI4_15_IRQn 0 */
 
-  /* USER CODE END EXTI0_1_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(PB_Pin);
-  /* USER CODE BEGIN EXTI0_1_IRQn 1 */
+	/* USER CODE END EXTI4_15_IRQn 0 */
+	HAL_GPIO_EXTI_IRQHandler(PB_Pin);
+	/* USER CODE BEGIN EXTI4_15_IRQn 1 */
 
-  /* USER CODE END EXTI0_1_IRQn 1 */
+	/* USER CODE END EXTI4_15_IRQn 1 */
 }
 
 /**
-  * @brief This function handles DMA1 channel 1 interrupt.
-  */
-void DMA1_Channel1_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_adc1);
-  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles DMA1 Ch4 to Ch7, DMA2 Ch1 to Ch5 and DMAMUX1 Overrun Interrupts.
-  */
+ * @brief This function handles DMA1 Ch4 to Ch7, DMA2 Ch1 to Ch5 and DMAMUX1 Overrun Interrupts.
+ */
 void DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 0 */
+	/* USER CODE BEGIN DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 0 */
 
-  /* USER CODE END DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi1_tx);
-  /* USER CODE BEGIN DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 1 */
+	/* USER CODE END DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 0 */
+	HAL_DMA_IRQHandler(&hdma_spi1_tx);
+	/* USER CODE BEGIN DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 1 */
 
-  /* USER CODE END DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 1 */
+	/* USER CODE END DMA1_Ch4_7_DMA2_Ch1_5_DMAMUX1_OVR_IRQn 1 */
 }
 
 /**
-  * @brief This function handles TIM15 global interrupt.
-  */
+ * @brief This function handles TIM15 global interrupt.
+ */
 void TIM15_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM15_IRQn 0 */
+	/* USER CODE BEGIN TIM15_IRQn 0 */
 
-  /* USER CODE END TIM15_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim15);
-  /* USER CODE BEGIN TIM15_IRQn 1 */
-	lv_tick_inc(1);
-  /* USER CODE END TIM15_IRQn 1 */
+	/* USER CODE END TIM15_IRQn 0 */
+	HAL_TIM_IRQHandler(&htim15);
+	/* USER CODE BEGIN TIM15_IRQn 1 */
+
+	/* USER CODE END TIM15_IRQn 1 */
 }
 
 /**
-  * @brief This function handles TIM16, FDCAN1_IT0 and FDCAN2_IT0 Interrupt.
-  */
+ * @brief This function handles TIM16, FDCAN1_IT0 and FDCAN2_IT0 Interrupt.
+ */
 void TIM16_FDCAN_IT0_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM16_FDCAN_IT0_IRQn 0 */
+	/* USER CODE BEGIN TIM16_FDCAN_IT0_IRQn 0 */
 
-  /* USER CODE END TIM16_FDCAN_IT0_IRQn 0 */
-  HAL_FDCAN_IRQHandler(&hfdcan1);
-  /* USER CODE BEGIN TIM16_FDCAN_IT0_IRQn 1 */
+	/* USER CODE END TIM16_FDCAN_IT0_IRQn 0 */
+	HAL_FDCAN_IRQHandler(&hfdcan1);
+	/* USER CODE BEGIN TIM16_FDCAN_IT0_IRQn 1 */
 
-  /* USER CODE END TIM16_FDCAN_IT0_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM17, FDCAN1_IT1 and FDCAN2_IT1 Interrupt.
-  */
-void TIM17_FDCAN_IT1_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM17_FDCAN_IT1_IRQn 0 */
-
-  /* USER CODE END TIM17_FDCAN_IT1_IRQn 0 */
-  HAL_FDCAN_IRQHandler(&hfdcan1);
-  /* USER CODE BEGIN TIM17_FDCAN_IT1_IRQn 1 */
-
-  /* USER CODE END TIM17_FDCAN_IT1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles SPI1/I2S1 Interrupt.
-  */
-void SPI1_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI1_IRQn 0 */
-
-  /* USER CODE END SPI1_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi1);
-  /* USER CODE BEGIN SPI1_IRQn 1 */
-
-  /* USER CODE END SPI1_IRQn 1 */
+	/* USER CODE END TIM16_FDCAN_IT0_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
@@ -221,7 +177,7 @@ void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin)
 {
 	/* Prevent unused argument(s) compilation warning */
 	UNUSED(GPIO_Pin);
-	xTaskNotifyFromISR(UI_TaskHandle, USER_BUTTON_PRESS, eSetBits, pdFALSE);
+	xTaskNotifyIndexedFromISR(UI_TaskHandle, USER_BUTTON_PRESS, HAL_GetTick(), eSetValueWithOverwrite, pdFALSE);
 
 	/* NOTE: This function should not be modified, when the callback is needed,
 	         the HAL_GPIO_EXTI_Rising_Callback could be implemented in the user file
@@ -237,7 +193,7 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin)
 {
 	/* Prevent unused argument(s) compilation warning */
 	UNUSED(GPIO_Pin);
-	xTaskNotifyFromISR(UI_TaskHandle, USER_BUTTON_RELEASE, eSetBits, pdFALSE);
+	xTaskNotifyIndexedFromISR(UI_TaskHandle, USER_BUTTON_RELEASE, HAL_GetTick(), eSetValueWithOverwrite, pdFALSE);
 
 	/* NOTE: This function should not be modified, when the callback is needed,
 	         the HAL_GPIO_EXTI_Falling_Callback could be implemented in the user file

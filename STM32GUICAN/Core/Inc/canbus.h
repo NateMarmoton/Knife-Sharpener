@@ -26,17 +26,6 @@ extern "C"
 #include "stm32g0xx_hal.h"
 
 
-
-typedef enum
-{
-  MOTOR_SPEED,
-  MOTOR_CURRENT,
-  MOTOR_POSITION,
-  FAULT,
-  MODE
-} MotorFeedbackTaskNotificationIndex_t;
-
-
 	void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs);
 
 	void FDCAN_Config(void);

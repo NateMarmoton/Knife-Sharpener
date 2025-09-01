@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 14 px
  * Bpp: 4
- * Opts: --bpp 4 --size 14 --no-compress --font UI\JetBrainsMono-Regular.ttf --symbols ° --range 32-127 --format lvgl
+ * Opts: --bpp 4 --size 14 --no-compress --font UI\JetBrainsMono-Regular.ttf --symbols ° --range 32-127,8226 --lv-fallback lv_font_montserrat_14 --format lvgl
  ******************************************************************************/
 
 #ifdef __has_include
@@ -641,7 +641,10 @@ static LV_ATTRIBUTE_LARGE_CONST const uint8_t glyph_bitmap[] = {
 
     /* U+00B0 "°" */
     0x2a, 0xb6, 0xc, 0x20, 0xb2, 0xc2, 0xb, 0x23,
-    0xbb, 0x70
+    0xbb, 0x70,
+
+    /* U+2022 "•" */
+    0x5, 0x81, 0x5f, 0xfb, 0x7f, 0xfe, 0x1c, 0xe5
 };
 
 
@@ -746,14 +749,17 @@ static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {
     {.bitmap_index = 3000, .adv_w = 134, .box_w = 2, .box_h = 14, .ofs_x = 3, .ofs_y = -2},
     {.bitmap_index = 3014, .adv_w = 134, .box_w = 7, .box_h = 14, .ofs_x = 1, .ofs_y = -2},
     {.bitmap_index = 3063, .adv_w = 134, .box_w = 8, .box_h = 4, .ofs_x = 0, .ofs_y = 3},
-    {.bitmap_index = 3079, .adv_w = 134, .box_w = 5, .box_h = 4, .ofs_x = 2, .ofs_y = 6}
+    {.bitmap_index = 3079, .adv_w = 134, .box_w = 5, .box_h = 4, .ofs_x = 2, .ofs_y = 6},
+    {.bitmap_index = 3089, .adv_w = 134, .box_w = 4, .box_h = 4, .ofs_x = 2, .ofs_y = 3}
 };
 
 /*---------------------
  *  CHARACTER MAPPING
  *--------------------*/
 
-
+static const uint16_t unicode_list_1[] = {
+    0x0, 0x1f72
+};
 
 /*Collect the unicode lists and glyph_id offsets*/
 static const lv_font_fmt_txt_cmap_t cmaps[] =
@@ -763,8 +769,8 @@ static const lv_font_fmt_txt_cmap_t cmaps[] =
         .unicode_list = NULL, .glyph_id_ofs_list = NULL, .list_length = 0, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY
     },
     {
-        .range_start = 176, .range_length = 1, .glyph_id_start = 96,
-        .unicode_list = NULL, .glyph_id_ofs_list = NULL, .list_length = 0, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY
+        .range_start = 176, .range_length = 8051, .glyph_id_start = 96,
+        .unicode_list = unicode_list_1, .glyph_id_ofs_list = NULL, .list_length = 2, .type = LV_FONT_FMT_TXT_CMAP_SPARSE_TINY
     }
 };
 
@@ -798,6 +804,7 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
 #endif
 };
 
+extern const lv_font_t lv_font_montserrat_14;
 
 
 /*-----------------
@@ -823,7 +830,7 @@ lv_font_t ui_font_jet_brains_mono = {
 #endif
     .dsc = &font_dsc,          /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
 #if LV_VERSION_CHECK(8, 2, 0) || LVGL_VERSION_MAJOR >= 9
-    .fallback = NULL,
+    .fallback = &lv_font_montserrat_14,
 #endif
     .user_data = NULL,
 };

@@ -96,6 +96,7 @@ void            xPortSysTickHandler(void);
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
 #define configKERNEL_PROVIDED_STATIC_MEMORY     1
 #define configUSE_IDLE_HOOK                     0
+#define vApplicationIdleHook(void)              freeRTOS_IdleHook();
 #define configUSE_TICK_HOOK                     1
 #define vApplicationTickHook(void)              freeRTOS_TickHook();
 #define configCPU_CLOCK_HZ                      (SystemCoreClock)
@@ -126,7 +127,7 @@ void            xPortSysTickHandler(void);
 #define configTIMER_TASK_STACK_DEPTH            256
 
 /* Task notification definitions. */
-#define configTASK_NOTIFICATION_ARRAY_ENTRIES   5
+#define configTASK_NOTIFICATION_ARRAY_ENTRIES   7
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */

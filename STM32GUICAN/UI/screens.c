@@ -19,7 +19,6 @@ void create_screen_main() {
     objects.main = obj;
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, 320, 240);
-    lv_obj_set_style_image_recolor(obj, lv_color_hex(0xff814475), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(obj, lv_color_hex(0xffffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
     {
         lv_obj_t *parent_obj = obj;
@@ -27,10 +26,9 @@ void create_screen_main() {
             // temperature_display
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.temperature_display = obj;
-            lv_obj_set_pos(obj, 0, -112);
+            lv_obj_set_pos(obj, -7, -108);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_font(obj, &ui_font_jet_brains_mono, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_label_set_text(obj, "Temp");
         }
         {
@@ -62,11 +60,29 @@ void create_screen_main() {
             // current_display
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.current_display = obj;
-            lv_obj_set_pos(obj, 0, -97);
+            lv_obj_set_pos(obj, -7, -89);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_obj_set_style_align(obj, LV_ALIGN_RIGHT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_font(obj, &ui_font_jet_brains_mono, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_label_set_text(obj, "Current");
+        }
+        {
+            // mode_display
+            lv_obj_t *obj = lv_label_create(parent_obj);
+            objects.mode_display = obj;
+            lv_obj_set_pos(obj, 6, -108);
+            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_label_set_text(obj, "Mode");
+        }
+        {
+            // fault_display
+            lv_obj_t *obj = lv_label_create(parent_obj);
+            objects.fault_display = obj;
+            lv_obj_set_pos(obj, 138, 0);
+            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+            lv_obj_set_style_align(obj, LV_ALIGN_LEFT_MID, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(obj, lv_color_hex(0xffff0000), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_label_set_text(obj, "FAULT");
         }
     }
     

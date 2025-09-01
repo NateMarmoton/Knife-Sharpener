@@ -52,6 +52,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/canbus.c
     Core/Src/lcd.c
+    Core/Src/M15_Motor.c
     UI/ui.c
     UI/images.c
     UI/screens.c

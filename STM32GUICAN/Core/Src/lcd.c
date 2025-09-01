@@ -9,7 +9,7 @@
 #include "./src/drivers/display/st7789/lv_st7789.h"
 
 
-lv_display_t* lcd_disp;
+static lv_display_t* lcd_disp;
 volatile int  lcd_bus_busy = 0;
 
 static const uint8_t cmdlist[] = {0x21, 0, LV_LCD_CMD_DELAY_MS, LV_LCD_CMD_EOF};
