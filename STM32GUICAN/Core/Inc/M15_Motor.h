@@ -25,7 +25,6 @@ extern "C"
 		POSITION_CONTROL = 3,
 		MOTOR_DISABLED   = 9,
 		MOTOR_ENABLED    = 10,
-
 	} M15_Mode_t;
 
 	typedef enum

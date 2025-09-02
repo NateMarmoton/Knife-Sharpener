@@ -113,6 +113,12 @@ void M15_Motor_Set_Mode(M15_Mode_t mode)
 	if((Current > 1 || Velocity > 10) && Mode != POSITION_CONTROL)
 	{
 		M15_Motor_Set_SetPoint(0x00);
+		while((Current > 100) || (Velocity > 1))
+		{
+			xTaskNotifyWaitIndexed(MOTOR_CURRENT, 0x0000, 0x0000, &Current, portMAX_DELAY);
+			xTaskNotifyWaitIndexed(MOTOR_VELOCITY, 0x0000, 0x0000, &Velocity, portMAX_DELAY);
+			__NOP();
+		}
 	}
 
 	TxData[0] = 0x00;

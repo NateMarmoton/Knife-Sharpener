@@ -24,7 +24,7 @@ void lcd_init(void)
 	uint32_t buf_size = LCD_H_RES * LCD_V_RES / 10 * lv_color_format_get_size(lv_display_get_color_format(lcd_disp));
 
 
-	/* Allocate draw buffers on the heap. In this example we use two partial buffers of 1/10th size of the screen */
+	/* Allocate draw buffers on the heap. In this example we use two partial buffers of 1/12th size of the screen */
 	lv_color_t* buf1 = NULL;
 	lv_color_t* buf2 = NULL;
 

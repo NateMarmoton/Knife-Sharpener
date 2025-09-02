@@ -73,6 +73,7 @@ extern objects_t objects;
 /* USER CODE BEGIN PV */
 TaskHandle_t  LvglTaskHandle;
 TaskHandle_t  UI_TaskHandle;
+TaskHandle_t  CAN_TaskHandle;
 
 APP_ADC_BUF_t ADC_Buffer;
 float         POT;
@@ -88,6 +89,8 @@ extern LPTIM_HandleTypeDef hlptim2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+
+void CAN_Task(void* argument);
 
 void UI_Task(void* argument);
 
@@ -141,8 +144,11 @@ int main(void)
 
 
 	/* Create FreeRTOS tasks */
-	xTaskCreate(LVGL_Task, "LVGL Task", 2048, NULL, osPriorityLow, &LvglTaskHandle);
+	xTaskCreate(LVGL_Task, "LVGL Task", 1024, NULL, osPriorityLow, &LvglTaskHandle);
 	xTaskCreate(UI_Task, "UI Task", 256, NULL, osPriorityHigh, &UI_TaskHandle);
+
+	xTaskCreate(CAN_Task, "CAN Task", 256, NULL, osPriorityHigh, &CAN_TaskHandle);
+
 	HAL_GPIO_WritePin(RTOS_IDLE_GPIO_Port, RTOS_IDLE_Pin, GPIO_PIN_SET);
 
 	/* USER CODE END 2 */
@@ -208,11 +214,53 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+typedef enum
+{
+	MOTOR_NO_CHANGE  = 0,
+	MOTOR_CYCLE_MODE = 1,
+} CAN_COMMANDS_t;
+
+void CAN_Task(void* argument)
+{
+	uint32_t ulNotifiedValue;
+
+	HAL_ADCEx_Calibration_Start(&hadc1);
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_Buffer, sizeof(ADC_Buffer) / sizeof(uint16_t));
+
+	/* Configure CANBUS with TX messages and RX filters */
+	FDCAN_Config();
+
+	/* Enable the CAN transceiver */
+	HAL_GPIO_WritePin(CAN_VIO_GPIO_Port, CAN_VIO_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CAN_STB_GPIO_Port, CAN_STB_Pin, GPIO_PIN_RESET);
+
+	/* Enable the Motor */
+	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_SET);
+	vTaskDelay(500);
+	M15_Motor_Set_Mode(VELOCITY_CONTROL);
+	M15_Motor_Set_SetPoint(0x10);
 
 
-#define USER_SHORT_PRESS_DEBOUNCE 25    // ms
-#define USER_LONG_PRESS_TIME      2000  // ms
-#define USER_DOUBLE_PRESS_TIME    300   // ms
+	for(;;)
+	{
+		uint32_t Mode;
+		xTaskNotifyWaitIndexed(MOTOR_MODE, 0x0000, 0x0000, &Mode, portMAX_DELAY);
+
+		xTaskNotifyWait(0x0000, 0x0000, &ulNotifiedValue, portMAX_DELAY);
+
+		switch(ulNotifiedValue)
+		{
+		case MOTOR_CYCLE_MODE:
+			M15_Motor_Set_Mode(M15_NextMode(Mode));
+			xTaskNotifyStateClear(NULL);
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+
 
 void UI_Task(void* argument)
 {
@@ -220,27 +268,12 @@ void UI_Task(void* argument)
 	uint32_t ButtonPressTime   = 0;
 	uint32_t ButtonReleaseTime = 0;
 
-	uint32_t ulNotifiedValue = 0xFFFF;
 	for(;;)
 	{
-		xTaskNotifyWaitIndexed(USER_BUTTON_PRESS, 0xFFFF, 0x0000, &ButtonPressTime, portMAX_DELAY);
-		xTaskNotifyWaitIndexed(USER_BUTTON_RELEASE, 0xFFFF, 0x0000, &ButtonReleaseTime, portMAX_DELAY);
+		xTaskNotifyWaitIndexed(USER_BUTTON_PRESS, 0x0000, 0xFFFF, &ButtonPressTime, portMAX_DELAY);
+		xTaskNotifyWaitIndexed(USER_BUTTON_RELEASE, 0x0000, 0xFFFF, &ButtonReleaseTime, portMAX_DELAY);
 
-		// ulNotifiedValue = uxTaskNotifyValueClear(NULL, 0xFFFF);
-		// if(ulNotifiedValue & USER_BUTTON_PRESS)
-		// {
-		// 	// Handle button press
-		// 	ulTaskNotifyValueClear(NULL, USER_BUTTON_PRESS);
 
-		// 	ButtonPressTime = HAL_GetTick();  // Record the time of button press
-		// }
-
-		// if(ulNotifiedValue & USER_BUTTON_RELEASE)
-		// {
-		// 	// Handle button release
-		// 	ulTaskNotifyValueClear(NULL, USER_BUTTON_RELEASE);
-		// 	ButtonReleaseTime = HAL_GetTick();  // Record the time of button release
-		// }
 
 		if(ButtonPressTime != 0 && ButtonReleaseTime != 0)
 		{
@@ -253,11 +286,7 @@ void UI_Task(void* argument)
 			} else if(ButtonPressDuration > USER_SHORT_PRESS_DEBOUNCE)
 			{
 				// Short press detected
-
-				uint32_t Mode;
-				xTaskNotifyWaitIndexed(MOTOR_MODE, 0x0000, 0x0000, &Mode, portMAX_DELAY);
-
-				M15_Motor_Set_Mode(M15_NextMode(Mode));
+				xTaskNotify(CAN_TaskHandle, MOTOR_CYCLE_MODE, eSetBits);
 			}
 			ButtonPressTime   = 0;  // Reset the press time
 			ButtonReleaseTime = 0;  // Reset the release time
@@ -279,25 +308,8 @@ void LVGL_Task(void* argument)
 
 	ui_init();
 
-	HAL_ADCEx_Calibration_Start(&hadc1);
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_Buffer, sizeof(ADC_Buffer) / sizeof(uint16_t));
-
-	/* Configure CANBUS with TX messages and RX filters */
-	FDCAN_Config();
-
-	/* Enable the CAN transceiver */
-	HAL_GPIO_WritePin(CAN_VIO_GPIO_Port, CAN_VIO_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(CAN_STB_GPIO_Port, CAN_STB_Pin, GPIO_PIN_RESET);
-
-	/* Enable the Motor */
-	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_SET);
-	vTaskDelay(500);
-	M15_Motor_Set_Mode(VELOCITY_CONTROL);
-	M15_Motor_Set_SetPoint(0x10);
-
-
-	uint32_t MotorSpeed_int_addr;
-	uint32_t MotorCurrent_int_addr;
+	uint32_t MotorSpeed;
+	uint32_t MotorCurrentmA;
 	uint32_t MotorPosition_int_addr;
 	uint32_t Fault;
 	uint32_t Mode;
@@ -306,8 +318,7 @@ void LVGL_Task(void* argument)
 
 	for(;;)
 	{
-		float adc_vref      = 0;
-		float MotorPosition = (int16_t)MotorPosition_int_addr * 0.0109863;
+		float adc_vref = 0;
 
 		/* UPDATE DISPLAYED MOTOR MODE */
 		xTaskNotifyWaitIndexed(MOTOR_MODE, 0x0000, 0x0000, &Mode, 0);
@@ -315,16 +326,14 @@ void LVGL_Task(void* argument)
 
 
 		/* UPDATE DISPLAYED MOTOR SPEED */
-		xTaskNotifyWaitIndexed(MOTOR_VELOCITY, 0x0000, 0x0000, &MotorSpeed_int_addr, 0);
-		float MotorSpeed = (int16_t)MotorSpeed_int_addr / 100.0f;
+		xTaskNotifyWaitIndexed(MOTOR_VELOCITY, 0x0000, 0x0000, &MotorSpeed, 0);
 		lv_arc_set_value(objects.gauge, (int32_t)(LV_ABS(MotorSpeed)));
 
 		/* UPDATE DISPLAYED MOTOR CURRENT*/
-		// xTaskNotifyWaitIndexed(MOTOR_CURRENT, 0x0000, 0x0000, &MotorCurrent_int_addr, 0);
-		// float MotorCurrent  = (int16_t)(LV_ABS(MotorCurrent_int_addr)) * 0.00167847f;
-		adc_vref      = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
-		float current = ((ADC_Buffer.CurrentSense * adc_vref / 4095) - 1650) * 1000 / 132;
-		lv_label_set_text_fmt(objects.current_display, "%.2fA", current / 1000);
+		xTaskNotifyWaitIndexed(MOTOR_CURRENT, 0x0000, 0x0000, &MotorCurrentmA, 0);
+		// adc_vref      = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
+		// float current = ((ADC_Buffer.CurrentSense * adc_vref / 4095) - 1650) * 1000 / 132;
+		lv_label_set_text_fmt(objects.current_display, "%dmA", MotorCurrentmA);
 
 		/* UPDATE DISPLAYED MOTOR FAULTS */
 		xTaskNotifyWaitIndexed(MOTOR_FAULTS, 0x0000, 0x0000, &Fault, 0);
@@ -332,12 +341,14 @@ void LVGL_Task(void* argument)
 
 		/* UPDATE DISPLAYED MOTOR POSITION */
 		// xTaskNotifyWaitIndexed(MOTOR_POSITION, 0x0000, 0x0000, &MotorPosition_int_addr, 0);
+		// float MotorPosition = (int16_t)MotorPosition_int_addr * 0.0109863;
 		// lv_label_set_text_fmt(objects.position_display, "%.2f", (float)(int16_t)MotorPosition_int_addr * 0.01f);
 
 		/* UPDATE DISPLAYED MCU TEMPERATURE */
-		adc_vref = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
-		int temp = __LL_ADC_CALC_TEMPERATURE(adc_vref, ADC_Buffer.Temp, LL_ADC_RESOLUTION_12B);
-		lv_label_set_text_fmt(objects.temperature_display, "%d°C", temp);
+		// adc_vref = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
+		// int temp = __LL_ADC_CALC_TEMPERATURE(adc_vref, ADC_Buffer.Temp, LL_ADC_RESOLUTION_12B);
+		// lv_label_set_text_fmt(objects.temperature_display, "%d°C", temp);
+
 
 		/* The task running lv_timer_handler should have lower priority than that running `lv_tick_inc` */
 		HAL_GPIO_WritePin(RTOS_IDLE_GPIO_Port, RTOS_IDLE_Pin, GPIO_PIN_RESET);
