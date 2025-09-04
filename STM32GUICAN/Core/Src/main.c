@@ -71,12 +71,12 @@ extern objects_t objects;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-TaskHandle_t  LvglTaskHandle;
-TaskHandle_t  UI_TaskHandle;
-TaskHandle_t  CAN_TaskHandle;
+TaskHandle_t           LvglTaskHandle;
+TaskHandle_t           UI_TaskHandle;
+TaskHandle_t           CAN_TaskHandle;
 
-APP_ADC_BUF_t ADC_Buffer;
-float         POT;
+volatile APP_ADC_BUF_t ADC_Buffer;
+float                  POT;
 
 
 #if configGENERATE_RUN_TIME_STATS
@@ -238,7 +238,7 @@ void CAN_Task(void* argument)
 	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_SET);
 	vTaskDelay(500);
 	M15_Motor_Set_Mode(VELOCITY_CONTROL);
-	M15_Motor_Set_SetPoint(0x10);
+	// M15_Motor_Set_SetPoint(0x10);
 
 
 	for(;;)
@@ -246,15 +246,56 @@ void CAN_Task(void* argument)
 		uint32_t Mode;
 		xTaskNotifyWaitIndexed(MOTOR_MODE, 0x0000, 0x0000, &Mode, portMAX_DELAY);
 
-		xTaskNotifyWait(0x0000, 0x0000, &ulNotifiedValue, portMAX_DELAY);
+		xTaskNotifyWait(0xFFFF, 0x0000, &ulNotifiedValue, 250);
 
-		switch(ulNotifiedValue)
+		switch(Mode)
 		{
-		case MOTOR_CYCLE_MODE:
-			M15_Motor_Set_Mode(M15_NextMode(Mode));
-			xTaskNotifyStateClear(NULL);
+		case VOLTAGE_CONTROL:
+		case CURRENT_CONTROL:
+		case VELOCITY_CONTROL:
+
+			if(ulNotifiedValue == MOTOR_CYCLE_MODE)
+			{
+				M15_Motor_Set_SetPoint(0x00);
+				vTaskDelay(1000);
+				M15_Motor_Set_Mode(MOTOR_DISABLED);
+				vTaskDelay(1000);
+				M15_Motor_Set_Mode(MOTOR_ENABLED);
+				vTaskDelay(1000);
+				M15_Motor_Set_Mode(M15_NextMode(Mode));
+				vTaskDelay(1000);
+
+			} else
+			{
+				float setpoint = 0;
+				if(ADC_Buffer.POT > 2048)
+				{
+					setpoint = (ADC_Buffer.POT - 2048) / 28.44;
+				} else if(ADC_Buffer.POT < 2048)
+				{
+					setpoint = 255 - (2048 - ADC_Buffer.POT) / 28.44;
+				} else
+				{
+					setpoint = 0;
+				}
+				M15_Motor_Set_SetPoint(setpoint);
+			}
 			break;
-		default:
+
+		case POSITION_CONTROL:
+			if(ulNotifiedValue == MOTOR_CYCLE_MODE)
+			{
+				M15_Motor_Set_Mode(MOTOR_DISABLED);
+				vTaskDelay(1000);
+				M15_Motor_Set_Mode(MOTOR_ENABLED);
+				vTaskDelay(1000);
+				M15_Motor_Set_Mode(M15_NextMode(Mode));
+				vTaskDelay(1000);
+			} else
+			{
+				int32_t setpoint_adj = (ADC_Buffer.POT)/100;
+				M15_Motor_Set_SetPoint(0x00 + setpoint_adj);
+			}
 			break;
 		}
 	}
@@ -294,6 +335,10 @@ void UI_Task(void* argument)
 	}
 }
 
+
+#define RPM_BUFFER_SIZE 100  // Adjust this value to change smoothing (higher = more smoothing)
+
+
 void LVGL_Task(void* argument)
 {
 	/* Initialize LVGL */
@@ -308,7 +353,15 @@ void LVGL_Task(void* argument)
 
 	ui_init();
 
-	uint32_t MotorSpeed;
+
+	// Moving average for RPM
+	int      rpm_buffer[RPM_BUFFER_SIZE];
+	int      rpm_buffer_index  = 0;
+	int      rpm_buffer_count  = 0;
+	bool     rpm_buffer_filled = false;
+
+
+	uint32_t MotorRPM;
 	uint32_t MotorCurrentmA;
 	uint32_t MotorPosition_int_addr;
 	uint32_t Fault;
@@ -326,28 +379,30 @@ void LVGL_Task(void* argument)
 
 
 		/* UPDATE DISPLAYED MOTOR SPEED */
-		xTaskNotifyWaitIndexed(MOTOR_VELOCITY, 0x0000, 0x0000, &MotorSpeed, 0);
-		lv_arc_set_value(objects.gauge, (int32_t)(LV_ABS(MotorSpeed)));
+		xTaskNotifyWaitIndexed(MOTOR_RPM, 0x0000, 0x0000, &MotorRPM, 0);
+		lv_arc_set_value(objects.rpm_gauge, (int32_t)(LV_ABS(MotorRPM)));
 
 		/* UPDATE DISPLAYED MOTOR CURRENT*/
 		xTaskNotifyWaitIndexed(MOTOR_CURRENT, 0x0000, 0x0000, &MotorCurrentmA, 0);
-		// adc_vref      = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
-		// float current = ((ADC_Buffer.CurrentSense * adc_vref / 4095) - 1650) * 1000 / 132;
-		lv_label_set_text_fmt(objects.current_display, "%dmA", MotorCurrentmA);
+		adc_vref        = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
+		int32_t current = ((ADC_Buffer.CurrentSense * adc_vref / 4095) - 1650) * 1000 / 132;
+		lv_arc_set_value(objects.current_gauge, (int32_t)(MotorCurrentmA));
+
+		// lv_label_set_text_fmt(objects.current_display, "%dmA", current);
 
 		/* UPDATE DISPLAYED MOTOR FAULTS */
 		xTaskNotifyWaitIndexed(MOTOR_FAULTS, 0x0000, 0x0000, &Fault, 0);
 		lv_label_set_text(objects.fault_display, M15_Motor_Get_Fault_String(Fault));
 
 		/* UPDATE DISPLAYED MOTOR POSITION */
-		// xTaskNotifyWaitIndexed(MOTOR_POSITION, 0x0000, 0x0000, &MotorPosition_int_addr, 0);
-		// float MotorPosition = (int16_t)MotorPosition_int_addr * 0.0109863;
-		// lv_label_set_text_fmt(objects.position_display, "%.2f", (float)(int16_t)MotorPosition_int_addr * 0.01f);
+		xTaskNotifyWaitIndexed(MOTOR_POSITION, 0x0000, 0x0000, &MotorPosition_int_addr, 0);
+		float MotorPosition = (int16_t)MotorPosition_int_addr * 0.0109863;
+		lv_label_set_text_fmt(objects.position_display, "%.1f°", (float)(int16_t)MotorPosition_int_addr * 0.01f);
 
 		/* UPDATE DISPLAYED MCU TEMPERATURE */
-		// adc_vref = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
-		// int temp = __LL_ADC_CALC_TEMPERATURE(adc_vref, ADC_Buffer.Temp, LL_ADC_RESOLUTION_12B);
-		// lv_label_set_text_fmt(objects.temperature_display, "%d°C", temp);
+		adc_vref = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);
+		int temp = __LL_ADC_CALC_TEMPERATURE(adc_vref, ADC_Buffer.Temp, LL_ADC_RESOLUTION_12B);
+		lv_label_set_text_fmt(objects.temperature_display, "%d°C", temp);
 
 
 		/* The task running lv_timer_handler should have lower priority than that running `lv_tick_inc` */

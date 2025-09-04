@@ -103,24 +103,6 @@ M15_Mode_t M15_NextMode(M15_Mode_t mode)
 
 void M15_Motor_Set_Mode(M15_Mode_t mode)
 {
-	int32_t  Current  = 0xFFFF;
-	int32_t  Velocity = 0xFFFF;
-	uint32_t Mode     = 0xFFFF;
-	xTaskNotifyWaitIndexed(MOTOR_CURRENT, 0x0000, 0x0000, &Current, portMAX_DELAY);
-	xTaskNotifyWaitIndexed(MOTOR_VELOCITY, 0x0000, 0x0000, &Velocity, portMAX_DELAY);
-	xTaskNotifyWaitIndexed(MOTOR_MODE, 0x0000, 0x0000, &Mode, portMAX_DELAY);
-
-	if((Current > 1 || Velocity > 10) && Mode != POSITION_CONTROL)
-	{
-		M15_Motor_Set_SetPoint(0x00);
-		while((Current > 100) || (Velocity > 1))
-		{
-			xTaskNotifyWaitIndexed(MOTOR_CURRENT, 0x0000, 0x0000, &Current, portMAX_DELAY);
-			xTaskNotifyWaitIndexed(MOTOR_VELOCITY, 0x0000, 0x0000, &Velocity, portMAX_DELAY);
-			__NOP();
-		}
-	}
-
 	TxData[0] = 0x00;
 	TxData[1] = mode;
 	TxData[2] = 0x00;

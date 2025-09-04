@@ -9,11 +9,14 @@ extern "C" {
 
 typedef struct _objects_t {
     lv_obj_t *main;
-    lv_obj_t *temperature_display;
-    lv_obj_t *gauge;
-    lv_obj_t *current_display;
+    lv_obj_t *rpm_gauge;
+    lv_obj_t *current_gauge;
+    lv_obj_t *rpm_scale;
+    lv_obj_t *current_scale;
     lv_obj_t *mode_display;
+    lv_obj_t *temperature_display;
     lv_obj_t *fault_display;
+    lv_obj_t *position_display;
 } objects_t;
 
 extern objects_t objects;

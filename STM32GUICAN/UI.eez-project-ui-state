@@ -1,8 +1,8 @@
 {
   "navigation": {
     "selectedUserPageObject": "[UI.eez-project]:/userPages/0",
+    "selectedActionObject": "[UI.eez-project]:/actions/-1",
     "selectedFontObject": "[UI.eez-project]:/fonts/0",
-    "selectedGlyphObject": "[UI.eez-project]:/fonts/0/glyphs/-1",
     "subnavigationSelectedItems": {}
   },
   "layoutModel": {
@@ -23,7 +23,7 @@
           },
           {
             "type": "border",
-            "selected": 0,
+            "selected": 1,
             "size": 240,
             "location": "right",
             "children": [
@@ -124,7 +124,6 @@
                   "type": "tabset",
                   "id": "#4613e674-30ff-4044-a58b-fe606b12ef6e",
                   "weight": 1,
-                  "selected": 1,
                   "enableClose": false,
                   "children": [
                     {
@@ -199,9 +198,22 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 49.29395399198271,
+              "selected": 1,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
+                {
+                  "type": "tab",
+                  "id": "#b27f0533-02d3-4fa8-8558-6f5d2848a0f4",
+                  "name": "Settings",
+                  "component": "editor",
+                  "config": {
+                    "objectPath": "[UI.eez-project]:/settings",
+                    "subObjectPath": "[UI.eez-project]:/settings",
+                    "permanent": false
+                  },
+                  "icon": "material:settings"
+                },
                 {
                   "type": "tab",
                   "id": "#375ea75b-e5ef-4222-8b65-2c12d85cefac",
@@ -575,8 +587,7 @@
                   "component": "glyphs",
                   "enableClose": false
                 }
-              ],
-              "active": true
+              ]
             },
             {
               "type": "tabset",
@@ -592,7 +603,8 @@
                   "component": "editor",
                   "enableClose": false
                 }
-              ]
+              ],
+              "active": true
             }
           ]
         }
@@ -970,7 +982,7 @@
       "transform": {
         "translate": {
           "x": -105,
-          "y": -334.00000762939453
+          "y": 32.66664505004883
         },
         "scale": 1
       },
@@ -996,7 +1008,6 @@
   "lvglPart": "INDICATOR",
   "lvglState": "DEFAULT",
   "lvglExpandedPropertiesGroup": [
-    "POSITION AND SIZE",
     "TEXT"
   ],
   "showInactiveFlowsInDebugger": true,

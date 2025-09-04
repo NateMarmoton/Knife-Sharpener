@@ -33,9 +33,9 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 		/* Display LEDx */
 		if((RxHeader.Identifier == 0x98) && (RxHeader.IdType == FDCAN_STANDARD_ID) && (RxHeader.DataLength == FDCAN_DLC_BYTES_8))
 		{
-			uint8_t MotorSpeed = LV_ABS((int16_t)((RxData[0] << 8) | RxData[1])) / 100;
-			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_VELOCITY, (uint32_t)MotorSpeed, eSetValueWithOverwrite, pdFALSE);
-			xTaskNotifyIndexedFromISR(CAN_TaskHandle, MOTOR_VELOCITY, (uint32_t)MotorSpeed, eSetValueWithOverwrite, pdFALSE);
+			uint8_t MotorRPM = LV_ABS((int16_t)((RxData[0] << 8) | RxData[1])) / 100;
+			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_RPM, (uint32_t)MotorRPM, eSetValueWithOverwrite, pdFALSE);
+			xTaskNotifyIndexedFromISR(CAN_TaskHandle, MOTOR_RPM, (uint32_t)MotorRPM, eSetValueWithOverwrite, pdFALSE);
 
 			uint16_t MotorCurrentmA = LV_ABS((int16_t)((RxData[2] << 8) | RxData[3])) * 1.67847f;
 			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_CURRENT, (uint32_t)MotorCurrentmA, eSetValueWithOverwrite, pdFALSE);
