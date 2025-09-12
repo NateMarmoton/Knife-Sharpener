@@ -100,7 +100,26 @@ void LVGL_Task(void* argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+const char* Get_Mode_String(M15_Mode_t mode)
+{
+	switch(mode)
+	{
+	case VOLTAGE_CONTROL:
+		return "vltctrl";
+	case CURRENT_CONTROL:
+		return "BURR BREAKING";
+	case VELOCITY_CONTROL:
+		return "CONSTANT RPM";
+	case POSITION_CONTROL:
+		return "ANGLE SET";
+	case MOTOR_DISABLED:
+		return "Motor Disabled";
+	case MOTOR_ENABLED:
+		return "Motor Enabled";
+	default:
+		return "Unknown Mode";
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -145,7 +164,7 @@ int main(void)
 
 	/* Create FreeRTOS tasks */
 	xTaskCreate(LVGL_Task, "LVGL Task", 1024, NULL, osPriorityLow, &LvglTaskHandle);
-	xTaskCreate(UI_Task, "UI Task", 256, NULL, osPriorityHigh, &UI_TaskHandle);
+	xTaskCreate(UI_Task, "UI Task", 256, NULL, osPriorityHigh + 1, &UI_TaskHandle);
 
 	xTaskCreate(CAN_Task, "CAN Task", 256, NULL, osPriorityHigh, &CAN_TaskHandle);
 
@@ -236,101 +255,120 @@ void CAN_Task(void* argument)
 
 	/* Enable the Motor */
 	HAL_GPIO_WritePin(MotorEn_GPIO_Port, MotorEn_Pin, GPIO_PIN_SET);
-	vTaskDelay(500);
-	M15_Motor_Set_Mode(VELOCITY_CONTROL);
-	// M15_Motor_Set_SetPoint(0x10);
 
+	M15_Motor_Calibrate();
+	vTaskDelay(500);
+	M15_Motor_Set_Mode(POSITION_CONTROL);
+	vTaskDelay(500);
+	M15_Motor_Set_Feedback_Frequency(100);  // 100ms reporting interval
+	M15_Motor_Set_SetPoint(0x00);
+	vTaskDelay(100);
+
+	SharpeningModes_t Mode = ANGLE_SETUP;
 
 	for(;;)
 	{
-		uint32_t Mode;
-		xTaskNotifyWaitIndexed(MOTOR_MODE, 0x0000, 0x0000, &Mode, portMAX_DELAY);
+		xTaskNotifyWait(0x0000, 0xFFFF, &ulNotifiedValue, 100);
 
-		xTaskNotifyWait(0xFFFF, 0x0000, &ulNotifiedValue, 250);
+		if(ulNotifiedValue)
+		{
+			Mode = (Mode + 1) % 3;
+		}
 
 		switch(Mode)
 		{
-		case VOLTAGE_CONTROL:
-		case CURRENT_CONTROL:
-		case VELOCITY_CONTROL:
+		case CONSTANT_RPM:
 
-			if(ulNotifiedValue == MOTOR_CYCLE_MODE)
+			if(ulNotifiedValue)
 			{
-				M15_Motor_Set_SetPoint(0x00);
-				vTaskDelay(1000);
-				M15_Motor_Set_Mode(MOTOR_DISABLED);
-				vTaskDelay(1000);
-				M15_Motor_Set_Mode(MOTOR_ENABLED);
-				vTaskDelay(1000);
-				M15_Motor_Set_Mode(M15_NextMode(Mode));
-				vTaskDelay(1000);
+				M15_Motor_Reset();
+				M15_Motor_Set_Mode(VELOCITY_CONTROL);
+				vTaskDelay(100);
+			}
 
+			int setpoint = 0;
+			if(ADC_Buffer.POT > 2048)
+			{
+				setpoint = (ADC_Buffer.POT - 2048) / 28.44;
+			} else if(ADC_Buffer.POT < 2048)
+			{
+				setpoint = 255 - (2048 - ADC_Buffer.POT) / 28.44;
 			} else
 			{
-				float setpoint = 0;
-				if(ADC_Buffer.POT > 2048)
-				{
-					setpoint = (ADC_Buffer.POT - 2048) / 28.44;
-				} else if(ADC_Buffer.POT < 2048)
-				{
-					setpoint = 255 - (2048 - ADC_Buffer.POT) / 28.44;
-				} else
-				{
-					setpoint = 0;
-				}
-				M15_Motor_Set_SetPoint(setpoint);
+				setpoint = 0;
 			}
+
+			// M15_Motor_Set_SetPoint(setpoint);
 			break;
 
-		case POSITION_CONTROL:
-			if(ulNotifiedValue == MOTOR_CYCLE_MODE)
+		case BURR_BREAKING:
+			if(ulNotifiedValue)
 			{
-				M15_Motor_Set_Mode(MOTOR_DISABLED);
-				vTaskDelay(1000);
-				M15_Motor_Set_Mode(MOTOR_ENABLED);
-				vTaskDelay(1000);
-				M15_Motor_Set_Mode(M15_NextMode(Mode));
-				vTaskDelay(1000);
-			} else
-			{
-				int32_t setpoint_adj = (ADC_Buffer.POT)/100;
-				M15_Motor_Set_SetPoint(0x00 + setpoint_adj);
+				M15_Motor_Reset();
+				M15_Motor_Set_Mode(CURRENT_CONTROL);
 			}
+
+			// M15_Motor_Set_SetPoint(0x01);
+
 			break;
+
+		case ANGLE_SETUP:
+			if(ulNotifiedValue)
+			{
+				M15_Motor_Reset();
+				M15_Motor_Set_Mode(POSITION_CONTROL);
+			}
+			int32_t setpoint_adj = (ADC_Buffer.POT) / 500;
+			// M15_Motor_Set_SetPoint(0x00 + setpoint_adj);
 		}
 	}
 }
 
 
-
 void UI_Task(void* argument)
 {
-
-	uint32_t ButtonPressTime   = 0;
-	uint32_t ButtonReleaseTime = 0;
-
 	for(;;)
 	{
-		xTaskNotifyWaitIndexed(USER_BUTTON_PRESS, 0x0000, 0xFFFF, &ButtonPressTime, portMAX_DELAY);
-		xTaskNotifyWaitIndexed(USER_BUTTON_RELEASE, 0x0000, 0xFFFF, &ButtonReleaseTime, portMAX_DELAY);
+		uint8_t click      = 0;
 
-
-
-		if(ButtonPressTime != 0 && ButtonReleaseTime != 0)
+		/* Wait indefinitely for button press rising edge notification */
+		xTaskNotifyWait(0x0000, 0x0000, NULL, portMAX_DELAY);
+		
+		/* Debounce and count clicks */
+		for(uint8_t i = 0; i < NUMBER_OF_SUPPORTED_BUTTON_CLICKS; i++)
 		{
-			uint32_t ButtonPressDuration = ButtonReleaseTime - ButtonPressTime;
-
-			if(ButtonPressDuration >= USER_LONG_PRESS_TIME)
+			uint16_t Button_Poll = 0;
+			while(HAL_GPIO_ReadPin(PB_GPIO_Port, PB_Pin) == GPIO_PIN_SET)
 			{
-				// Long press detected
-
-			} else if(ButtonPressDuration > USER_SHORT_PRESS_DEBOUNCE)
-			{
-				// Short press detected
-				xTaskNotify(CAN_TaskHandle, MOTOR_CYCLE_MODE, eSetBits);
+				vTaskDelay(10);
+				Button_Poll += 10;
 			}
-			ButtonPressTime   = 0;  // Reset the press time
-			ButtonReleaseTime = 0;  // Reset the release time
+
+			if(Button_Poll > USER_SHORT_PRESS_DEBOUNCE && Button_Poll < USER_LONG_PRESS_TIME)
+			{
+				click += 1;
+			} else if(Button_Poll >= USER_LONG_PRESS_TIME)
+			{
+				/* LONG PRESS DETECTED */
+				click += 1<<4;
+			}
+			if (xTaskNotifyWait(0xFFFF, 0x0000, NULL, 200) == pdFALSE) break;
+		}
+
+		switch(click)
+		{
+		case 0:  // no click
+			__NOP();
+			break;
+		case 1:  // single click
+			xTaskNotify(CAN_TaskHandle, MOTOR_CYCLE_MODE, eSetBits);
+			break;
+		case 2:  // double click
+			__NOP();
+			break;
+		case 1<<4:  // long click
+			__NOP();
+			break;
 		}
 	}
 }
@@ -375,7 +413,7 @@ void LVGL_Task(void* argument)
 
 		/* UPDATE DISPLAYED MOTOR MODE */
 		xTaskNotifyWaitIndexed(MOTOR_MODE, 0x0000, 0x0000, &Mode, 0);
-		lv_label_set_text(objects.mode_display, M15_Motor_Get_Mode_String(Mode));
+		lv_label_set_text(objects.mode_display, Get_Mode_String(Mode));
 
 
 		/* UPDATE DISPLAYED MOTOR SPEED */
@@ -396,8 +434,8 @@ void LVGL_Task(void* argument)
 
 		/* UPDATE DISPLAYED MOTOR POSITION */
 		xTaskNotifyWaitIndexed(MOTOR_POSITION, 0x0000, 0x0000, &MotorPosition_int_addr, 0);
-		float MotorPosition = (int16_t)MotorPosition_int_addr * 0.0109863;
-		lv_label_set_text_fmt(objects.position_display, "%.1f°", (float)(int16_t)MotorPosition_int_addr * 0.01f);
+		float MotorPosition = (int16_t)MotorPosition_int_addr / 91.02222;
+		lv_label_set_text_fmt(objects.position_display, "%.2f°", MotorPosition);
 
 		/* UPDATE DISPLAYED MCU TEMPERATURE */
 		adc_vref = __LL_ADC_CALC_VREFANALOG_VOLTAGE(ADC_Buffer.VREF, LL_ADC_RESOLUTION_12B);

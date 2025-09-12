@@ -1,9 +1,10 @@
 {
   "navigation": {
     "selectedUserPageObject": "[UI.eez-project]:/userPages/0",
-    "selectedActionObject": "[UI.eez-project]:/actions/-1",
     "selectedFontObject": "[UI.eez-project]:/fonts/0",
-    "subnavigationSelectedItems": {}
+    "subnavigationSelectedItems": {
+      "variables-tab/sub-navigation/selected-item": "Global"
+    }
   },
   "layoutModel": {
     "rootEditor": {
@@ -975,16 +976,19 @@
     "[UI.eez-project]:/userPages/0[flow-state]": {
       "selection": {
         "0": {
-          "0": {},
-          "2": {}
+          "2": {},
+          "3": {},
+          "5": {},
+          "6": {},
+          "7": {}
         }
       },
       "transform": {
         "translate": {
-          "x": -105,
-          "y": 32.66664505004883
+          "x": -162.95535714285717,
+          "y": -111.86252288818369
         },
-        "scale": 1
+        "scale": 1.5
       },
       "timeline": {
         "isEditorActive": false,
@@ -1008,10 +1012,10 @@
   "lvglPart": "INDICATOR",
   "lvglState": "DEFAULT",
   "lvglExpandedPropertiesGroup": [
-    "TEXT"
+    "LINE"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1,
+  "flowZoom": 1.5,
   "implementationLanguage": "C"
 }

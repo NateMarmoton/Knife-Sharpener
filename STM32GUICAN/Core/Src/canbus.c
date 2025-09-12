@@ -3,8 +3,11 @@
 #include "task.h"
 #include "main.h"
 
+
+FDCAN_TxHeaderTypeDef      CalibrateTxHeader;
 FDCAN_TxHeaderTypeDef      ModeTxHeader;
 FDCAN_TxHeaderTypeDef      SetPointTxHeader;
+FDCAN_TxHeaderTypeDef      FeedbackFrequencyTxHeader;
 
 FDCAN_RxHeaderTypeDef      RxHeader;
 
@@ -31,7 +34,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 		}
 
 		/* Display LEDx */
-		if((RxHeader.Identifier == 0x98) && (RxHeader.IdType == FDCAN_STANDARD_ID) && (RxHeader.DataLength == FDCAN_DLC_BYTES_8))
+		if((RxHeader.Identifier == 0x97) && (RxHeader.IdType == FDCAN_STANDARD_ID) && (RxHeader.DataLength == FDCAN_DLC_BYTES_8))
 		{
 			uint8_t MotorRPM = LV_ABS((int16_t)((RxData[0] << 8) | RxData[1])) / 100;
 			xTaskNotifyIndexedFromISR(LvglTaskHandle, MOTOR_RPM, (uint32_t)MotorRPM, eSetValueWithOverwrite, pdFALSE);
@@ -81,6 +84,18 @@ void FDCAN_Config(void)
 		Error_Handler();
 	}
 
+
+	/* Calibrate TX header */
+	CalibrateTxHeader.Identifier          = 0x104;
+	CalibrateTxHeader.IdType              = FDCAN_STANDARD_ID;
+	CalibrateTxHeader.TxFrameType         = FDCAN_DATA_FRAME;
+	CalibrateTxHeader.DataLength          = FDCAN_DLC_BYTES_8;
+	CalibrateTxHeader.ErrorStateIndicator = FDCAN_ESI_PASSIVE;
+	CalibrateTxHeader.BitRateSwitch       = FDCAN_BRS_OFF;
+	CalibrateTxHeader.FDFormat            = FDCAN_CLASSIC_CAN;
+	CalibrateTxHeader.TxEventFifoControl  = FDCAN_NO_TX_EVENTS;
+	CalibrateTxHeader.MessageMarker       = 0;
+
 	/* Mode TX header */
 	ModeTxHeader.Identifier          = 0x105;
 	ModeTxHeader.IdType              = FDCAN_STANDARD_ID;
@@ -103,4 +118,18 @@ void FDCAN_Config(void)
 	SetPointTxHeader.FDFormat            = FDCAN_CLASSIC_CAN;
 	SetPointTxHeader.TxEventFifoControl  = FDCAN_NO_TX_EVENTS;
 	SetPointTxHeader.MessageMarker       = 0;
+
+	/* Feedback Frequency */
+	FeedbackFrequencyTxHeader.Identifier          = 0x106;
+	FeedbackFrequencyTxHeader.IdType              = FDCAN_STANDARD_ID;
+	FeedbackFrequencyTxHeader.TxFrameType         = FDCAN_DATA_FRAME;
+	FeedbackFrequencyTxHeader.DataLength          = FDCAN_DLC_BYTES_8;
+	FeedbackFrequencyTxHeader.ErrorStateIndicator = FDCAN_ESI_PASSIVE;
+	FeedbackFrequencyTxHeader.BitRateSwitch       = FDCAN_BRS_OFF;
+	FeedbackFrequencyTxHeader.FDFormat            = FDCAN_CLASSIC_CAN;
+	FeedbackFrequencyTxHeader.TxEventFifoControl  = FDCAN_NO_TX_EVENTS;
+	FeedbackFrequencyTxHeader.MessageMarker       = 0;
+
+
+
 }

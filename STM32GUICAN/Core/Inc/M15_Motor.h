@@ -45,16 +45,17 @@ extern "C"
 		STALL                        = 98,
 	} M15_Faults_t;
 
-	const char* M15_Motor_Get_Mode_String(M15_Mode_t mode);
+	void M15_Motor_Reset(void);
 
 	const char* M15_Motor_Get_Fault_String(M15_Faults_t fault);
 
-	M15_Mode_t  M15_NextMode(M15_Mode_t mode);
-
 	void        M15_Motor_Set_Mode(M15_Mode_t mode);
 
-	void        M15_Motor_Set_SetPoint(uint8_t setpoint);
+	void        M15_Motor_Set_SetPoint(uint16_t setpoint);
 
+	void 	  M15_Motor_Set_Feedback_Frequency(uint8_t frequency);
+
+	void 	M15_Motor_Calibrate(void);
 
 #ifdef __cplusplus
 }

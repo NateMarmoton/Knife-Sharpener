@@ -173,30 +173,17 @@ void TIM16_FDCAN_IT0_IRQHandler(void)
  * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
  * @retval None
  */
-void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin)
+uint32_t pressedTime;
+uint32_t releasedTime;
+
+void     HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin)
 {
 	/* Prevent unused argument(s) compilation warning */
 	UNUSED(GPIO_Pin);
-	xTaskNotifyIndexedFromISR(UI_TaskHandle, USER_BUTTON_PRESS, HAL_GetTick(), eSetValueWithOverwrite, pdFALSE);
-
+	xTaskNotifyFromISR(UI_TaskHandle, USER_BUTTON_PRESS, eSetValueWithOverwrite, pdFALSE);
 	/* NOTE: This function should not be modified, when the callback is needed,
 	         the HAL_GPIO_EXTI_Rising_Callback could be implemented in the user file
 	 */
 }
 
-/**
- * @brief  EXTI line detection callback.
- * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
- * @retval None
- */
-void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin)
-{
-	/* Prevent unused argument(s) compilation warning */
-	UNUSED(GPIO_Pin);
-	xTaskNotifyIndexedFromISR(UI_TaskHandle, USER_BUTTON_RELEASE, HAL_GetTick(), eSetValueWithOverwrite, pdFALSE);
-
-	/* NOTE: This function should not be modified, when the callback is needed,
-	         the HAL_GPIO_EXTI_Falling_Callback could be implemented in the user file
-	 */
-}
 /* USER CODE END 1 */

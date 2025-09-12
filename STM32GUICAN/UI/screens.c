@@ -29,8 +29,8 @@ void create_screen_main() {
             objects.rpm_gauge = obj;
             lv_obj_set_pos(obj, 79, 39);
             lv_obj_set_size(obj, 162, 162);
-            lv_arc_set_range(obj, 0, 180);
-            lv_arc_set_value(obj, 170);
+            lv_arc_set_range(obj, 0, 200);
+            lv_arc_set_value(obj, 180);
             lv_obj_set_style_arc_width(obj, 8, LV_PART_INDICATOR | LV_STATE_DEFAULT);
             lv_obj_set_style_arc_rounded(obj, false, LV_PART_INDICATOR | LV_STATE_DEFAULT);
             lv_obj_set_style_arc_color(obj, lv_color_hex(0xff47bad3), LV_PART_INDICATOR | LV_STATE_DEFAULT);
@@ -60,7 +60,7 @@ void create_screen_main() {
             lv_obj_set_pos(obj, 85, 45);
             lv_obj_set_size(obj, 150, 150);
             lv_scale_set_mode(obj, LV_SCALE_MODE_ROUND_OUTER);
-            lv_scale_set_range(obj, 0, 160);
+            lv_scale_set_range(obj, 0, 200);
             lv_scale_set_total_tick_count(obj, 17);
             lv_scale_set_major_tick_every(obj, 2);
             lv_scale_set_label_show(obj, true);
